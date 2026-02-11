@@ -141,56 +141,22 @@ streaming is recommended to avoid timeouts.
 
 ## Thinking Capabilities
 
-### Opus 4.6 — Adaptive Thinking
+| Model | Type | Configuration |
+|-------|------|---------------|
+| Opus 4.6 | Adaptive | `thinking: {type: "adaptive"}` — Claude decides when/how much |
+| Sonnet 4.5 | Extended + interleaved | `thinking: {type: "enabled", budget_tokens: N}` |
+| Opus 4.5 | Extended | `thinking: {type: "enabled", budget_tokens: N}` (no interleaving) |
+| Haiku 4.5 | None | Use `effort` parameter for basic thoroughness control |
 
-```python
-response = client.messages.create(
-    model="claude-opus-4-6",
-    max_tokens=16000,
-    thinking={"type": "adaptive"},
-    messages=[...]
-)
-```
-
-Claude decides autonomously when and how much to think. No `budget_tokens`
-needed. Combine with `effort` parameter for coarse control.
-
-### Sonnet 4.5 — Extended + Interleaved Thinking
-
-```python
-response = client.messages.create(
-    model="claude-sonnet-4-5-20250929",
-    max_tokens=16000,
-    thinking={"type": "enabled", "budget_tokens": 10000},
-    messages=[...]
-)
-```
-
-Interleaved thinking is automatic — thinking blocks appear between tool calls.
-No separate beta header needed.
-
-### Opus 4.5 — Extended Thinking
-
-Same API as Sonnet 4.5 (`budget_tokens` based). Does not support interleaved
-thinking or adaptive thinking.
-
-### Haiku 4.5 — No Thinking
-
-Does not support extended thinking. Use `effort` parameter for basic
-thoroughness control.
+See `references/api-features.md` for code examples and migration guidance.
 
 ---
 
 ## Computer Use Versions
 
-| Models | Tool Type | Beta Header | Zoom |
-|--------|-----------|-------------|------|
-| Opus 4.6, Opus 4.5 | `computer_20251124` | `computer-use-2025-11-24` | Yes |
-| Sonnet 4.5, Haiku 4.5, others | `computer_20250124` | `computer-use-2025-01-24` | No |
-
-The zoom action (`{"action": "zoom", "region": [x1,y1,x2,y2]}`) is exclusive
-to models using `computer_20251124`. Useful for reading small text or precise
-UI element targeting.
+Opus 4.6 and Opus 4.5 use `computer_20251124` (includes zoom action). All other
+models use `computer_20250124`. See `references/tool-types.md` for full configuration,
+available actions, coordinate scaling, and security requirements.
 
 ---
 
