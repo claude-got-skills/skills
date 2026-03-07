@@ -25,16 +25,18 @@ Reference files provide deeper detail with code examples for API features, tool 
 ## Installation
 
 ```bash
-npx skills add claude-got-skills/claude-capabilities
+npx skills add claude-got-skills/skills@claude-capabilities
 ```
 
 Or add manually to your Claude Code skills directory.
 
-## Eval results (v1.3.0 on Haiku 4.5)
+## Eval results
 
-The skill was evaluated against a baseline (no skill context) across 22 test prompts in 7 categories.
+### API eval (v1.3.0, Haiku 4.5, no web search)
 
-### Keyword accuracy lift (Control → Treatment)
+The skill was evaluated against a baseline (no skill context) across 22 test prompts in 7 categories using the Claude API with Haiku 4.5 (no web search access).
+
+#### Keyword accuracy lift (Control → Treatment)
 
 | Category | Control | Treatment | Lift |
 |----------|---------|-----------|------|
@@ -46,13 +48,25 @@ The skill was evaluated against a baseline (no skill context) across 22 test pro
 | Hallucination Detection | 1.5 | 2.75 | **+83%** |
 | **Negative (regression check)** | **5.0** | **4.67** | **-7% (negligible)** |
 
-### LLM judge scores (0-3 scale, with SKILL.md rubric)
+The LLM judge (Haiku 4.5 with SKILL.md rubric) confirmed treatment responses as more accurate and actionable across all positive categories. In hallucination test 7.1 (browser cookie access), the control response contained a hallucinated claim that was absent from the treatment response.
 
-The judge correctly identifies treatment responses as more accurate and actionable across all positive categories, while scoring negative tests neutrally.
+### Browser eval (v1.4.0, Opus 4.6 on Claude.ai, with web search)
 
-### Hallucination prevention
+Five prompts tested on Claude.ai with skill OFF (control) then ON (treatment). This tests real-world conditions where Claude has web search and stronger built-in product knowledge.
 
-The skill helps Claude avoid confident-but-wrong answers about its capabilities. In test 7.1 (browser cookie access), the control response contained a hallucinated claim that was absent from the treatment response.
+| Prompt | Skill Triggered | Quality Δ |
+|--------|----------------|-----------|
+| Document processing pipeline (API) | YES | Similar — marginal lift |
+| Extended vs adaptive thinking | YES | Similar — slightly more concise |
+| Model selection for chatbot | YES | Similar — more specific pricing |
+| Code review checklist in Claude Code | YES (explicit) | **Treatment notably better** |
+| Cross-conversation memory | UNCLEAR | Similar — more personalized |
+
+**Key finding:** The skill's unique value is strongest for **Claude Code extension patterns** (skills, hooks, plugins, CLAUDE.md) where web search alone doesn't surface structured, actionable guidance. For API and model questions, Claude.ai's web search already gives strong answers — the skill adds marginal improvements.
+
+**Decision: Standalone skill (not plugin).** On-demand loading is sufficient. The skill triggers reliably (4/5 confirmed) and doesn't need autoInvoke, hooks, or slash commands. Token-efficient at ~4,100 tokens loaded only when relevant.
+
+Full analysis: [`docs/browser-test-analysis.md`](docs/browser-test-analysis.md)
 
 ## Token cost
 
@@ -61,15 +75,23 @@ SKILL.md is ~4,100 tokens. It loads once per session when invoked. Reference fil
 ## Structure
 
 ```
-claude-capabilities/
-├── SKILL.md                      # Always-loaded skill (~333 lines)
-├── README.md                     # This file
-└── references/
-    ├── agent-capabilities.md     # Agent SDK, subagents, hooks, plugins
-    ├── api-features.md           # API parameters, headers, code examples
-    ├── claude-code-specifics.md  # Agent teams, Chrome, CLI, IDE extensions
-    ├── model-specifics.md        # Pricing, feature matrices, migration guides
-    └── tool-types.md             # Built-in tools, tool definitions, examples
+├── .claude-plugin/
+│   └── marketplace.json              # Skill discovery for npx skills add
+├── skills/
+│   └── claude-capabilities/
+│       ├── SKILL.md                  # Always-loaded skill (~297 lines, ~4,100 tokens)
+│       └── references/
+│           ├── agent-capabilities.md # Agent SDK, subagents, hooks, plugins
+│           ├── api-features.md       # API parameters, headers, code examples
+│           ├── claude-code-specifics.md
+│           ├── model-specifics.md    # Pricing, feature matrices, migration guides
+│           └── tool-types.md         # Built-in tools, tool definitions, examples
+├── evals/                            # Automated eval runner + results
+│   ├── eval_runner.py                # Control/treatment eval with LLM judge
+│   └── eval-results-*.json           # Timestamped eval runs (gitignored)
+├── docs/                             # Design docs, analysis, test results
+├── knowledge-base/                   # Source docs from Anthropic documentation
+└── monitoring/                       # Freshness checks and update tracking
 ```
 
 ## License

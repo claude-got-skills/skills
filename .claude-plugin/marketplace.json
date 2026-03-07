@@ -1,0 +1,11 @@
+{
+  "name": "claude-got-skills",
+  "description": "Skills for Claude Code — accurate capabilities knowledge, extension patterns, and more.",
+  "skills": [
+    {
+      "name": "claude-capabilities",
+      "path": "skills/claude-capabilities",
+      "description": "Accurate post-training knowledge about Claude capabilities, API features, extension patterns, and model specifics."
+    }
+  ]
+}
