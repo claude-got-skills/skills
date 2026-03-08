@@ -4,7 +4,7 @@ Claude Code-specific features: agent teams, Chrome browser integration, CLI
 reference, IDE extensions, skills system, and plugin development. These capabilities
 are distinct from API-level features and only apply in Claude Code contexts.
 
-**Last updated:** 2026-02-10
+**Last updated:** 2026-03-07
 
 ## Table of Contents
 
@@ -343,9 +343,10 @@ Tool performance depends primarily on description quality. Best practices:
 - Explain: what it does, when to use (and when not), parameter meanings, caveats
 - Descriptions matter more than examples
 
-### Tool Use Examples (Beta)
+### Tool Use Examples (GA)
 
-Provide `input_examples` on tool definitions for complex tools:
+Provide `input_examples` on tool definitions for complex tools. No beta
+header required (formerly `advanced-tool-use-2025-11-20`).
 
 ```python
 tools = [{
@@ -358,9 +359,6 @@ tools = [{
     ]
 }]
 ```
-
-Headers: `advanced-tool-use-2025-11-20` (API, Foundry) or
-`tool-examples-2025-10-29` (Vertex, Bedrock — Opus 4.5 only).
 
 ### Tool Choice Control
 

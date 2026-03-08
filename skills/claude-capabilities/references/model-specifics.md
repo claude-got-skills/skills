@@ -144,10 +144,11 @@ streaming is recommended to avoid timeouts.
 
 | Model | Type | Configuration |
 |-------|------|---------------|
-| Opus 4.6 | Adaptive | `thinking: {type: "adaptive"}` — Claude decides when/how much |
-| Sonnet 4.5 | Extended + interleaved | `thinking: {type: "enabled", budget_tokens: N}` |
-| Opus 4.5 | Extended | `thinking: {type: "enabled", budget_tokens: N}` (no interleaving) |
-| Haiku 4.5 | None | Use `effort` parameter for basic thoroughness control |
+| Opus 4.6 | Adaptive + interleaved | `thinking: {type: "adaptive"}` — Claude decides when/how much |
+| Sonnet 4.6 | Adaptive + interleaved | `thinking: {type: "adaptive"}` — same as Opus 4.6 |
+| Haiku 4.5 | Extended | `thinking: {type: "enabled", budget_tokens: N}` (no interleaving) |
+| Sonnet 4.5 (legacy) | Extended + interleaved | `thinking: {type: "enabled", budget_tokens: N}` |
+| Opus 4.5 (legacy) | Extended | `thinking: {type: "enabled", budget_tokens: N}` (no interleaving) |
 
 See `references/api-features.md` for code examples and migration guidance.
 
@@ -165,25 +166,21 @@ available actions, coordinate scaling, and security requirements.
 
 ### Beta Features
 
-| Feature | Header | Opus 4.6 | Sonnet 4.5 | Haiku 4.5 | Opus 4.5 |
-|---------|--------|----------|------------|-----------|----------|
-| 1M context | `context-1m-2025-08-07` | Yes | Yes | Yes | Yes |
-| Files API | `files-api-2025-04-14` | Yes | Yes | Yes | Yes |
-| Memory tool | `context-management-2025-06-27` | Yes | Yes | Yes | Yes |
-| MCP connector | `mcp-client-2025-11-20` | Yes | Yes | Yes | Yes |
-| Computer use | Model-specific | Yes | Yes | Yes | Yes |
-| Code execution | `code-execution-2025-08-25` | Yes | Yes | Yes | Yes |
-| Skills | `skills-2025-10-02` | Yes | Yes | Yes | Yes |
-| Prog. tool calling | `advanced-tool-use-2025-11-20` | No | Yes | No | Yes |
-| Tool use examples | `advanced-tool-use-2025-11-20` | Yes | Yes | Yes | Yes |
-| Tool search | — | Yes | Yes | No | Yes |
-| Compaction | Beta | Yes | Yes | Yes | Yes |
+| Feature | Header | Opus 4.6 | Sonnet 4.6 | Haiku 4.5 | Sonnet 4.5 | Opus 4.5 |
+|---------|--------|----------|------------|-----------|------------|----------|
+| 1M context | `context-1m-2025-08-07` | Yes | Yes | Yes | Yes | Yes |
+| Files API | `files-api-2025-04-14` | Yes | Yes | Yes | Yes | Yes |
+| MCP connector | `mcp-client-2025-11-20` | Yes | Yes | Yes | Yes | Yes |
+| Computer use | Model-specific | Yes | Yes | Yes | Yes | Yes |
+| Skills | `skills-2025-10-02` | Yes | Yes | Yes | Yes | Yes |
+| Compaction | Beta | Yes | Yes | Yes | Yes | Yes |
 
 ### GA Features (No Header Required)
 
 Structured outputs, effort parameter, extended thinking, prompt caching,
-batch processing, web search, citations, token counting, fine-grained tool
-streaming.
+batch processing, web search, web fetch, code execution, tool search,
+memory tool, programmatic tool calling, tool use examples, citations,
+token counting, fine-grained tool streaming.
 
 ---
 
@@ -246,14 +243,22 @@ tool parameter extraction. Well-formed JSON parsers handle all valid escaping.
 6. Test JSON parsing for tool parameters (quoting changes)
 7. Increase `max_tokens` ceiling — now supports up to 128K
 
+### From Sonnet 4.5 to Sonnet 4.6
+
+1. Replace `thinking: {type: "enabled", budget_tokens: N}` with
+   `thinking: {type: "adaptive"}`
+2. Programmatic tool calling now GA — no beta header required
+3. Context awareness system warnings not present on Sonnet 4.6
+4. Same pricing as Sonnet 4.5 ($3/$15)
+5. Dynamic filtering now available for web search/fetch
+
 ### From Sonnet 4.5 to Opus 4.6
 
 All Opus 4.5 migration steps above, plus:
 1. Note `effort: "max"` is now available (Opus 4.6 exclusive)
-2. Programmatic tool calling not available on Opus 4.6 (use Sonnet 4.5 if
-   needed)
+2. Programmatic tool calling now GA on Opus 4.6 — no header required
 3. Context awareness system warnings not present on Opus 4.6
-4. Budget may increase significantly (15x input cost vs Sonnet 4.5)
+4. Budget may increase significantly (~1.7x input cost vs Sonnet 4.5)
 
 ---
 
@@ -262,11 +267,12 @@ All Opus 4.5 migration steps above, plus:
 | Use Case | Recommended | Rationale |
 |----------|-------------|-----------|
 | Complex reasoning, research | Opus 4.6 | Adaptive thinking, 128K output, highest capability |
-| Coding, general agent tasks | Sonnet 4.5 | Interleaved thinking, balanced cost/performance |
+| Coding, general agent tasks | Sonnet 4.6 | Adaptive thinking, balanced cost/performance |
 | High-volume processing | Haiku 4.5 | Lowest cost, fastest latency |
 | Batch analysis | Haiku 4.5 + batch | 50% batch discount on cheapest model |
-| Multi-tool workflows | Sonnet 4.5 | Programmatic tool calling available |
-| Document generation | Sonnet 4.5 | Good balance for skills-based work |
+| Multi-tool workflows | Sonnet 4.6 | Programmatic tool calling (GA), dynamic filtering |
+| Web research with filtering | Sonnet 4.6 | Dynamic filtering + free code execution |
+| Document generation | Sonnet 4.6 | Good balance for skills-based work |
 | Subagent tasks | Haiku 4.5 | Cost-effective for delegated analysis |
 | Maximum quality | Opus 4.6 (effort: max) | Highest capability + maximum effort |
 

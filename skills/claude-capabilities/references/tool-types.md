@@ -4,7 +4,7 @@ All built-in tool types with configuration, parameters, and usage patterns.
 Consult when configuring tools, understanding tool-specific limitations, or
 choosing the right tool for a task.
 
-**Last updated:** 2026-02-10
+**Last updated:** 2026-03-07
 
 ## Table of Contents
 
@@ -128,6 +128,11 @@ tools = [{"type": "code_execution_20250825", "name": "code_execution"}]
 Files uploaded via Files API are accessible in the container. Output files
 can be downloaded via Files API using file_ids from the response.
 
+### Pricing
+
+Code execution is **free** when used in combination with web search or web
+fetch. Standalone usage has separate pricing.
+
 ### Integration with Skills
 
 Code execution is the foundation for Agent Skills (pptx, xlsx, docx, pdf).
@@ -194,10 +199,20 @@ tools = [{"type": "web_search_20250305", "name": "web_search"}]
 - `blocked_domains` — exclude specific domains
 - `user_location` — geographic context for results
 
+### Dynamic Filtering
+
+When combined with code execution, web search supports dynamic filtering —
+Claude writes code to filter and process search results before they reach the
+context window. This reduces token cost and improves result quality.
+
+Available on Opus 4.6 and Sonnet 4.6. Requires code execution tool to be
+enabled alongside web search.
+
 ### Pricing
 
 - Search requests: $10 per 1,000 searches
 - Result token costs: standard input pricing
+- Code execution is free when used with web search
 
 ---
 
@@ -205,7 +220,7 @@ tools = [{"type": "web_search_20250305", "name": "web_search"}]
 
 **Status:** GA | **Header:** None required
 
-Fetch and read content from URLs. Supports dynamic filtering with code execution.
+Fetch and read content from URLs.
 
 ```python
 tools = [{"type": "web_fetch_20250305", "name": "web_fetch"}]
@@ -213,6 +228,13 @@ tools = [{"type": "web_fetch_20250305", "name": "web_fetch"}]
 
 Retrieve web page content, API responses, or file downloads. Content returned
 as text for Claude to process.
+
+### Dynamic Filtering
+
+Supports dynamic filtering with code execution — Claude writes code to
+filter and transform fetched content before it reaches the context window.
+Available on Opus 4.6 and Sonnet 4.6. Code execution is free when used
+with web fetch.
 
 ---
 

@@ -18,11 +18,14 @@ evals/eval-results-*.json
 # Browser eval auth state and raw results
 evals/claude-ai-auth-state.json
 evals/browser-eval-*/
+evals/browser-eval-results.json
+evals/browser-eval-run-*/
 
 # Freshness pipeline artifacts
 pipeline/checkpoint.json
+pipeline/run-history.json
 pipeline/reports/
-pipeline/logs/
+logs/
 .venv/
 
 # Skill-creator eval artifacts

@@ -4,7 +4,7 @@ Detailed API feature documentation with code examples, beta headers, and
 platform availability. Consult when implementing API calls or configuring
 features.
 
-**Last updated:** 2026-02-10
+**Last updated:** 2026-03-07
 
 ## Table of Contents
 
@@ -19,6 +19,7 @@ features.
 - [Memory Tool](#memory-tool)
 - [Citations and Search Results](#citations-and-search-results)
 - [Prompt Caching](#prompt-caching)
+- [Fast Mode](#fast-mode)
 - [Data Residency](#data-residency)
 - [Batch Processing](#batch-processing)
 - [Token Counting](#token-counting)
@@ -27,10 +28,10 @@ features.
 
 ## Adaptive Thinking
 
-**Status:** GA | **Models:** Opus 4.6 only | **Header:** None
+**Status:** GA | **Models:** Opus 4.6, Sonnet 4.6 | **Header:** None
 
 Claude dynamically decides when and how deeply to think. Replaces manual
-`budget_tokens` configuration.
+`budget_tokens` configuration. Available on Opus 4.6 and Sonnet 4.6.
 
 ```python
 response = client.messages.create(
@@ -48,30 +49,31 @@ needed.
 **Migration from budget_tokens:** Replace `thinking: {type: "enabled",
 budget_tokens: N}` with `thinking: {type: "adaptive"}` and set the `effort`
 parameter for coarse control. `budget_tokens` still works on Sonnet 4.5 and
-Opus 4.5 but is deprecated on Opus 4.6.
+Opus 4.5 but is deprecated on Opus 4.6 and Sonnet 4.6.
 
 ---
 
 ## Extended Thinking
 
-**Status:** GA | **Models:** Opus 4.6, Sonnet 4.5, Opus 4.5 | **Header:** None
+**Status:** GA | **Models:** All current | **Header:** None
 
-Multi-stage reasoning with explicit thinking blocks. Haiku 4.5 does not
+Multi-stage reasoning with explicit thinking blocks. All current models
 support extended thinking.
 
 ```python
-# Sonnet 4.5 / Opus 4.5 — still use budget_tokens
+# Haiku 4.5, Sonnet 4.5, Opus 4.5 — use budget_tokens
 response = client.messages.create(
-    model="claude-sonnet-4-5-20250929",
+    model="claude-haiku-4-5-20251001",
     max_tokens=16000,
     thinking={"type": "enabled", "budget_tokens": 10000},
     messages=[{"role": "user", "content": "..."}]
 )
 ```
 
-**Interleaved thinking** (Sonnet 4.5): thinking blocks appear between tool
-calls for better multi-step reasoning. On Sonnet 4.5, enable via:
-`thinking: {type: "enabled", budget_tokens: N}` — interleaving is automatic.
+**Interleaved thinking** (Opus 4.6, Sonnet 4.6, Sonnet 4.5): thinking blocks
+appear between tool calls for better multi-step reasoning. On Opus 4.6 and
+Sonnet 4.6, interleaving is automatic with adaptive thinking. On Sonnet 4.5,
+enable via `thinking: {type: "enabled", budget_tokens: N}`.
 
 **Context management:** thinking blocks are automatically stripped from context
 (not carried forward between turns). Effective context:
@@ -160,7 +162,7 @@ with memory tool to preserve critical information before clearing.
 
 ## Structured Outputs
 
-**Status:** GA | **Models:** Sonnet 4.5, Opus 4.5, Haiku 4.5 | **Header:** None
+**Status:** GA | **Models:** All current | **Header:** None
 **Note:** Beta on Bedrock and Foundry
 
 Two complementary approaches:
@@ -339,6 +341,46 @@ containing source, title, cited_text, and index references.
 
 Mark system prompts, tool definitions, and large documents with cache_control
 for significant cost reduction on repeated requests.
+
+### Automatic Caching
+
+```python
+response = client.messages.create(
+    model="claude-opus-4-6",
+    max_tokens=1024,
+    cache_control={"type": "auto"},
+    messages=[{"role": "user", "content": "..."}]
+)
+```
+
+Add a single `cache_control` field at the request level and the system
+automatically caches the last cacheable block, moving the cache point forward
+as conversations grow. No manual breakpoint management required. Works
+alongside existing block-level cache control.
+
+**Availability:** Claude API and Azure AI Foundry (preview).
+
+---
+
+## Fast Mode
+
+**Status:** Research Preview | **Models:** Opus 4.6 | **Header:** None
+**Access:** Waitlist-gated
+
+Up to 2.5x faster output token generation at premium pricing. Useful for
+latency-sensitive applications that need Opus-level quality.
+
+```python
+response = client.messages.create(
+    model="claude-opus-4-6",
+    max_tokens=4096,
+    speed="fast",
+    messages=[{"role": "user", "content": "..."}]
+)
+```
+
+**Note:** Fast mode is in research preview and not yet generally available.
+Premium pricing applies when `speed: "fast"` is set.
 
 ---
 

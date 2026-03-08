@@ -4,7 +4,7 @@ Agent SDK, subagents, skills system, hooks, MCP integration, and plugin
 architecture. Consult when building agents, configuring automation, or
 integrating external services.
 
-**Last updated:** 2026-02-10
+**Last updated:** 2026-03-07
 
 ## Table of Contents
 
@@ -291,7 +291,7 @@ Lifecycle automation at key events. Three hook types:
 
 ## Agent Skills
 
-**Status:** Beta | **Headers:** `code-execution-2025-08-25` + `skills-2025-10-02`
+**Status:** Beta | **Headers:** `skills-2025-10-02` (code execution now GA, no header needed)
 
 Extend Claude through code execution with document generation.
 
