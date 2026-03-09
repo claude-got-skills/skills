@@ -161,7 +161,7 @@ Create handoff for session 10 if not all items completed.
 - **API key**: ANTHROPIC_API_KEY in `.env` at repo root (gitignored)
 - **Python**: eval_runner.py needs `anthropic` package (installed)
 - **Pipeline deps**: trafilatura, requests (installed)
-- **agent-browser**: Uses real Chrome (`--executable-path`) with `--disable-blink-features=AutomationControlled`
+- **agent-browser**: Uses real Chrome (`--executable-path`) with `--disable-blink-features=AutomationControlled`. Auth state saved at `evals/claude-ai-auth-state.json` (gitignored, 21 cookies). May expire between sessions — if so, re-run `./evals/browser_eval.sh --auth` (headed Chrome, manual login + 2FA, ~30s)
 - **Firecrawl**: Available as MCP tool for ad-hoc scraping
 - **Freshness pipeline**: Active, launchd loaded, twice daily at 09:00/21:00
 
