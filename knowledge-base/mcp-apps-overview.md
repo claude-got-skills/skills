@@ -8,7 +8,7 @@ Use this file to discover all available pages before exploring further.
 Build interactive UI applications that render inside MCP hosts like Claude Desktop
 
 <Tip>
-  For comprehensive API documentation, advanced patterns, and the full specification, visit the [official MCP Apps documentation](https://modelcontextprotocol.github.io/ext-apps).
+  For comprehensive API documentation, advanced patterns, and the full specification, visit the [official MCP Apps documentation](https://apps.extensions.modelcontextprotocol.io).
 </Tip>
 
 Text responses can only go so far. Sometimes users need to interact with data, not
@@ -525,7 +525,7 @@ The key parts:
 
 The `App` class provides additional methods for logging, opening URLs, and
 updating the model's context with structured data from your app. See the full
-[API documentation](https://modelcontextprotocol.github.io/ext-apps/api/).
+[API documentation](https://apps.extensions.modelcontextprotocol.io/api/).
 
 ## Testing your app
 
@@ -642,7 +642,7 @@ framework or none at all.
 
 The `App` class from `@modelcontextprotocol/ext-apps` is a convenience wrapper,
 not a requirement. You can implement the
-[postMessage protocol](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx)
+[postMessage protocol](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx)
 directly if you prefer to avoid dependencies or need tighter control.
 
 The [examples directory](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples)
@@ -659,8 +659,8 @@ best for your use case.
 
 MCP Apps are currently supported by [Claude](https://claude.ai),
 [Claude Desktop](https://claude.ai/download),
-[Visual Studio Code (Insiders)](https://code.visualstudio.com/insiders), [Goose](https://block.github.io/goose/), [Postman](https://postman.com), and [MCPJam](https://www.mcpjam.com/). See the
-[clients page](/clients) for the full list of MCP clients and their supported
+[VS Code GitHub Copilot](https://code.visualstudio.com/), [Goose](https://block.github.io/goose/), [Postman](https://postman.com), and [MCPJam](https://www.mcpjam.com/). See the
+[client matrix](/extensions/client-matrix) for the full list of MCP clients and their supported
 features.
 
 If you're building an MCP client and want to support MCP Apps, you have two options:
@@ -671,13 +671,13 @@ If you're building an MCP client and want to support MCP Apps, you have two opti
    [MCP-UI documentation](https://mcpui.dev/) for usage details.
 
 2. **Build on AppBridge**: The SDK includes an
-   [**App Bridge**](https://modelcontextprotocol.github.io/ext-apps/api/modules/app-bridge.html)
+   [**App Bridge**](https://apps.extensions.modelcontextprotocol.io/api/modules/app-bridge.html)
    module that handles rendering apps in sandboxed iframes, message passing, tool
    call proxying, and security policy enforcement. The
    [basic-host example](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/basic-host)
    shows how to integrate it.
 
-See the [API documentation](https://modelcontextprotocol.github.io/ext-apps/api/)
+See the [API documentation](https://apps.extensions.modelcontextprotocol.io/api/)
 for implementation details.
 
 ## Examples
@@ -737,7 +737,7 @@ To run any example:
 ## Learn more
 
 <CardGroup cols={2}>
-  <Card title="API Documentation" icon="book" href="https://modelcontextprotocol.github.io/ext-apps/api/">
+  <Card title="API Documentation" icon="book" href="https://apps.extensions.modelcontextprotocol.io/api/">
     Full SDK reference and API details
   </Card>
 
@@ -745,7 +745,7 @@ To run any example:
     Source code, examples, and issue tracker
   </Card>
 
-  <Card title="Specification" icon="file-lines" href="https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx">
+  <Card title="Specification" icon="file-lines" href="https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx">
     Technical specification for implementers
   </Card>
 </CardGroup>

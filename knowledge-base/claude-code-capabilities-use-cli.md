@@ -1,3 +1,4 @@
+````
 > ## Documentation Index
 > Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt
 > Use this file to discover all available pages before exploring further.
@@ -149,3 +150,11 @@ If you're running multiple conversations, capture the session ID to resume a spe
 session_id=$(claude -p "Start a review" --output-format json | jq -r '.session_id')
 claude -p "Continue that review" --resume "$session_id"
 ```
+
+## Next steps
+
+* [Agent SDK quickstart](https://platform.claude.com/docs/en/agent-sdk/quickstart): build your first agent with Python or TypeScript
+* [CLI reference](/en/cli-reference): all CLI flags and options
+* [GitHub Actions](/en/github-actions): use the Agent SDK in GitHub workflows
+* [GitLab CI/CD](/en/gitlab-ci-cd): use the Agent SDK in GitLab pipelines
+````

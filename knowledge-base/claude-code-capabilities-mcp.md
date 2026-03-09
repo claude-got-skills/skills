@@ -1,3 +1,4 @@
+````
 > ## Documentation Index
 > Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt
 > Use this file to discover all available pages before exploring further.
@@ -532,57 +533,92 @@ If a required environment variable is not set and has no default value, Claude C
 {/* ### Example: Automate browser testing with Playwright
 
   ```bash
-  # 1. Add the Playwright MCP server
   claude mcp add --transport stdio playwright -- npx -y @playwright/mcp@latest
+  ```
 
-  # 2. Write and run browser tests
-  > "Test if the login flow works with test@example.com"
-  > "Take a screenshot of the checkout page on mobile"
-  > "Verify that the search feature returns results"
+  Then write and run browser tests:
+
+  ```text
+  Test if the login flow works with test@example.com
+  ```
+  ```text
+  Take a screenshot of the checkout page on mobile
+  ```
+  ```text
+  Verify that the search feature returns results
   ``` */}
 
 ### Example: Monitor errors with Sentry
 
 ```bash  theme={null}
-# 1. Add the Sentry MCP server
 claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
+```
 
-# 2. Use /mcp to authenticate with your Sentry account
-> /mcp
+Authenticate with your Sentry account:
 
-# 3. Debug production issues
-> "What are the most common errors in the last 24 hours?"
-> "Show me the stack trace for error ID abc123"
-> "Which deployment introduced these new errors?"
+```text  theme={null}
+/mcp
+```
+
+Then debug production issues:
+
+```text  theme={null}
+What are the most common errors in the last 24 hours?
+```
+
+```text  theme={null}
+Show me the stack trace for error ID abc123
+```
+
+```text  theme={null}
+Which deployment introduced these new errors?
 ```
 
 ### Example: Connect to GitHub for code reviews
 
 ```bash  theme={null}
-# 1. Add the GitHub MCP server
 claude mcp add --transport http github https://api.githubcopilot.com/mcp/
+```
 
-# 2. In Claude Code, authenticate if needed
-> /mcp
-# Select "Authenticate" for GitHub
+Authenticate if needed by selecting "Authenticate" for GitHub:
 
-# 3. Now you can ask Claude to work with GitHub
-> "Review PR #456 and suggest improvements"
-> "Create a new issue for the bug we just found"
-> "Show me all open PRs assigned to me"
+```text  theme={null}
+/mcp
+```
+
+Then work with GitHub:
+
+```text  theme={null}
+Review PR #456 and suggest improvements
+```
+
+```text  theme={null}
+Create a new issue for the bug we just found
+```
+
+```text  theme={null}
+Show me all open PRs assigned to me
 ```
 
 ### Example: Query your PostgreSQL database
 
 ```bash  theme={null}
-# 1. Add the database server with your connection string
 claude mcp add --transport stdio db -- npx -y @bytebase/dbhub \
   --dsn "postgresql://readonly:pass@prod.db.com:5432/analytics"
+```
 
-# 2. Query your database naturally
-> "What's our total revenue this month?"
-> "Show me the schema for the orders table"
-> "Find customers who haven't made a purchase in 90 days"
+Then query your database naturally:
+
+```text  theme={null}
+What's our total revenue this month?
+```
+
+```text  theme={null}
+Show me the schema for the orders table
+```
+
+```text  theme={null}
+Find customers who haven't made a purchase in 90 days
 ```
 
 ## Authenticate with remote MCP servers
@@ -601,8 +637,8 @@ Many cloud-based MCP servers require authentication. Claude Code supports OAuth 
   <Step title="Use the /mcp command within Claude Code">
     In Claude code, use the command:
 
-    ```
-    > /mcp
+    ```text  theme={null}
+    /mcp
     ```
 
     Then follow the steps in your browser to login.
@@ -614,9 +650,23 @@ Many cloud-based MCP servers require authentication. Claude Code supports OAuth 
 
   * Authentication tokens are stored securely and refreshed automatically
   * Use "Clear authentication" in the `/mcp` menu to revoke access
-  * If your browser doesn't open automatically, copy the provided URL
+  * If your browser doesn't open automatically, copy the provided URL and open it manually
+  * If the browser redirect fails with a connection error after authenticating, paste the full callback URL from your browser's address bar into the URL prompt that appears in Claude Code
   * OAuth authentication works with HTTP servers
 </Tip>
+
+### Use a fixed OAuth callback port
+
+Some MCP servers require a specific redirect URI registered in advance. By default, Claude Code picks a random available port for the OAuth callback. Use `--callback-port` to fix the port so it matches a pre-registered redirect URI of the form `http://localhost:PORT/callback`.
+
+You can use `--callback-port` on its own (with dynamic client registration) or together with `--client-id` (with pre-configured credentials).
+
+```bash  theme={null}
+# Fixed callback port with dynamic client registration
+claude mcp add --transport http \
+  --callback-port 8080 \
+  my-server https://mcp.example.com/mcp
+```
 
 ### Use pre-configured OAuth credentials
 
@@ -653,6 +703,15 @@ Some MCP servers don't support automatic OAuth setup. If you see an error like "
         ```
       </Tab>
 
+      <Tab title="claude mcp add-json (callback port only)">
+        Use `--callback-port` without a client ID to fix the port while using dynamic client registration:
+
+        ```bash  theme={null}
+        claude mcp add-json my-server \
+          '{"type":"http","url":"https://mcp.example.com/mcp","oauth":{"callbackPort":8080}}'
+        ```
+      </Tab>
+
       <Tab title="CI / env var">
         Set the secret via environment variable to skip the interactive prompt:
 
@@ -675,9 +734,32 @@ Some MCP servers don't support automatic OAuth setup. If you see an error like "
 
   * The client secret is stored securely in your system keychain (macOS) or a credentials file, not in your config
   * If the server uses a public OAuth client with no secret, use only `--client-id` without `--client-secret`
+  * `--callback-port` can be used with or without `--client-id`
   * These flags only apply to HTTP and SSE transports. They have no effect on stdio servers
   * Use `claude mcp get <name>` to verify that OAuth credentials are configured for a server
 </Tip>
+
+### Override OAuth metadata discovery
+
+If your MCP server returns errors on the standard OAuth metadata endpoint (`/.well-known/oauth-authorization-server`) but exposes a working OIDC endpoint, you can tell Claude Code to fetch OAuth metadata directly from a URL you specify, bypassing the standard discovery chain.
+
+Set `authServerMetadataUrl` in the `oauth` object of your server's config in `.mcp.json`:
+
+```json  theme={null}
+{
+  "mcpServers": {
+    "my-server": {
+      "type": "http",
+      "url": "https://mcp.example.com/mcp",
+      "oauth": {
+        "authServerMetadataUrl": "https://auth.example.com/.well-known/openid-configuration"
+      }
+    }
+  }
+}
+```
+
+The URL must use `https://`. This option requires Claude Code v2.1.64 or later.
 
 ## Add MCP servers from JSON configuration
 
@@ -722,8 +804,8 @@ If you've already configured MCP servers in Claude Desktop, you can import them:
 <Steps>
   <Step title="Import servers from Claude Desktop">
     ```bash  theme={null}
-    # Basic syntax 
-    claude mcp add-from-claude-desktop 
+    # Basic syntax
+    claude mcp add-from-claude-desktop
     ```
   </Step>
 
@@ -733,7 +815,7 @@ If you've already configured MCP servers in Claude Desktop, you can import them:
 
   <Step title="Verify the servers were imported">
     ```bash  theme={null}
-    claude mcp list 
+    claude mcp list
     ```
   </Step>
 </Steps>
@@ -747,6 +829,36 @@ If you've already configured MCP servers in Claude Desktop, you can import them:
   * Imported servers will have the same names as in Claude Desktop
   * If servers with the same names already exist, they will get a numerical suffix (for example, `server_1`)
 </Tip>
+
+## Use MCP servers from Claude.ai
+
+If you've logged into Claude Code with a [Claude.ai](https://claude.ai) account, MCP servers you've added in Claude.ai are automatically available in Claude Code:
+
+<Steps>
+  <Step title="Configure MCP servers in Claude.ai">
+    Add servers at [claude.ai/settings/connectors](https://claude.ai/settings/connectors). On Team and Enterprise plans, only admins can add servers.
+  </Step>
+
+  <Step title="Authenticate the MCP server">
+    Complete any required authentication steps in Claude.ai.
+  </Step>
+
+  <Step title="View and manage servers in Claude Code">
+    In Claude Code, use the command:
+
+    ```text  theme={null}
+    /mcp
+    ```
+
+    Claude.ai servers appear in the list with indicators showing they come from Claude.ai.
+  </Step>
+</Steps>
+
+To disable claude.ai MCP servers in Claude Code, set the `ENABLE_CLAUDEAI_MCP_SERVERS` environment variable to `false`:
+
+```bash  theme={null}
+ENABLE_CLAUDEAI_MCP_SERVERS=false claude
+```
 
 ## Use Claude Code as an MCP server
 
@@ -847,20 +959,20 @@ MCP servers can expose resources that you can reference using @ mentions, simila
   <Step title="Reference a specific resource">
     Use the format `@server:protocol://resource/path` to reference a resource:
 
-    ```
-    > Can you analyze @github:issue://123 and suggest a fix?
+    ```text  theme={null}
+    Can you analyze @github:issue://123 and suggest a fix?
     ```
 
-    ```
-    > Please review the API documentation at @docs:file://api/authentication
+    ```text  theme={null}
+    Please review the API documentation at @docs:file://api/authentication
     ```
   </Step>
 
   <Step title="Multiple resource references">
     You can reference multiple resources in a single prompt:
 
-    ```
-    > Compare @postgres:schema://users with @docs:file://database/user-model
+    ```text  theme={null}
+    Compare @postgres:schema://users with @docs:file://database/user-model
     ```
   </Step>
 </Steps>
@@ -942,20 +1054,20 @@ MCP servers can expose prompts that become available as commands in Claude Code.
   </Step>
 
   <Step title="Execute a prompt without arguments">
-    ```
-    > /mcp__github__list_prs
+    ```text  theme={null}
+    /mcp__github__list_prs
     ```
   </Step>
 
   <Step title="Execute a prompt with arguments">
     Many prompts accept arguments. Pass them space-separated after the command:
 
-    ```
-    > /mcp__github__pr_review 456
+    ```text  theme={null}
+    /mcp__github__pr_review 456
     ```
 
-    ```
-    > /mcp__jira__create_issue "Bug in login flow" high
+    ```text  theme={null}
+    /mcp__jira__create_issue "Bug in login flow" high
     ```
   </Step>
 </Steps>
@@ -1043,28 +1155,28 @@ Each entry in the allowlist or denylist can restrict servers in three ways:
 
 ```json  theme={null}
 {
-  "allowedMcpServers": [
-    // Allow by server name
-    { "serverName": "github" },
-    { "serverName": "sentry" },
-
-    // Allow by exact command (for stdio servers)
-    { "serverCommand": ["npx", "-y", "@modelcontextprotocol/server-filesystem"] },
-    { "serverCommand": ["python", "/usr/local/bin/approved-server.py"] },
-
-    // Allow by URL pattern (for remote servers)
-    { "serverUrl": "https://mcp.company.com/*" },
-    { "serverUrl": "https://*.internal.corp/*" }
+  "allowedMcpServers": [\
+    // Allow by server name\
+    { "serverName": "github" },\
+    { "serverName": "sentry" },\
+\
+    // Allow by exact command (for stdio servers)\
+    { "serverCommand": ["npx", "-y", "@modelcontextprotocol/server-filesystem"] },\
+    { "serverCommand": ["python", "/usr/local/bin/approved-server.py"] },\
+\
+    // Allow by URL pattern (for remote servers)\
+    { "serverUrl": "https://mcp.company.com/*" },\
+    { "serverUrl": "https://*.internal.corp/*" }\
   ],
-  "deniedMcpServers": [
-    // Block by server name
-    { "serverName": "dangerous-server" },
-
-    // Block by exact command (for stdio servers)
-    { "serverCommand": ["npx", "-y", "unapproved-package"] },
-
-    // Block by URL pattern (for remote servers)
-    { "serverUrl": "https://*.untrusted.com/*" }
+  "deniedMcpServers": [\
+    // Block by server name\
+    { "serverName": "dangerous-server" },\
+\
+    // Block by exact command (for stdio servers)\
+    { "serverCommand": ["npx", "-y", "unapproved-package"] },\
+\
+    // Block by URL pattern (for remote servers)\
+    { "serverUrl": "https://*.untrusted.com/*" }\
   ]
 }
 ```
@@ -1107,9 +1219,9 @@ URL patterns support wildcards using `*` to match any sequence of characters. Th
 <Accordion title="Example: URL-only allowlist">
   ```json  theme={null}
   {
-    "allowedMcpServers": [
-      { "serverUrl": "https://mcp.company.com/*" },
-      { "serverUrl": "https://*.internal.corp/*" }
+    "allowedMcpServers": [\
+      { "serverUrl": "https://mcp.company.com/*" },\
+      { "serverUrl": "https://*.internal.corp/*" }\
     ]
   }
   ```
@@ -1125,8 +1237,8 @@ URL patterns support wildcards using `*` to match any sequence of characters. Th
 <Accordion title="Example: Command-only allowlist">
   ```json  theme={null}
   {
-    "allowedMcpServers": [
-      { "serverCommand": ["npx", "-y", "approved-package"] }
+    "allowedMcpServers": [\
+      { "serverCommand": ["npx", "-y", "approved-package"] }\
     ]
   }
   ```
@@ -1141,9 +1253,9 @@ URL patterns support wildcards using `*` to match any sequence of characters. Th
 <Accordion title="Example: Mixed name and command allowlist">
   ```json  theme={null}
   {
-    "allowedMcpServers": [
-      { "serverName": "github" },
-      { "serverCommand": ["npx", "-y", "approved-package"] }
+    "allowedMcpServers": [\
+      { "serverName": "github" },\
+      { "serverCommand": ["npx", "-y", "approved-package"] }\
     ]
   }
   ```
@@ -1160,9 +1272,9 @@ URL patterns support wildcards using `*` to match any sequence of characters. Th
 <Accordion title="Example: Name-only allowlist">
   ```json  theme={null}
   {
-    "allowedMcpServers": [
-      { "serverName": "github" },
-      { "serverName": "internal-tool" }
+    "allowedMcpServers": [\
+      { "serverName": "github" },\
+      { "serverName": "internal-tool" }\
     ]
   }
   ```
@@ -1196,3 +1308,4 @@ URL patterns support wildcards using `*` to match any sequence of characters. Th
 <Note>
   **When using `managed-mcp.json`**: Users cannot add MCP servers through `claude mcp add` or configuration files. The `allowedMcpServers` and `deniedMcpServers` settings still apply to filter which managed servers are actually loaded.
 </Note>
+````
