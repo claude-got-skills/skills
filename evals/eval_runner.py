@@ -180,6 +180,51 @@ TESTS = [
             "deprecated_patterns": [],
         },
     },
+
+    # 2.4: Can Claude Do X — Vision / Image Analysis
+    {
+        "id": "2.4",
+        "category": "Can Claude Do X",
+        "prompt": (
+            "Can Claude analyze images? I have product photos I want to classify "
+            "and extract metadata from. What image formats are supported and how "
+            "do I send them through the API?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["jpeg", "png", "gif", "webp"],
+                         ["base64", "inline"],
+                         ["url", "image url"],
+                         ["all models", "all current models", "natively", "native"]],
+            "completeness": [["file_id", "files api", "file id"],
+                             ["token", "tokens", "dimension", "width", "height"],
+                             ["multi-image", "multiple image", "multiple images"],
+                             ["structured output", "json", "json_schema", "output_config"]],
+            "deprecated_patterns": ["claude cannot analyze images", "no vision support",
+                                    "text-only", "text only model"],
+        },
+    },
+
+    # 2.5: Can Claude Do X — CoWork
+    {
+        "id": "2.5",
+        "category": "Can Claude Do X",
+        "prompt": (
+            "What is Claude CoWork? Can I use my custom skills and MCP integrations "
+            "there? I heard it's different from Claude.ai — what does it support?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["cowork"],
+                         ["browser", "browser automation", "browser environment"],
+                         ["skill", "skills"],
+                         ["mcp", "mcp server", "mcp integration"]],
+            "completeness": [["plugin", "plugins", "via plugin"],
+                             ["no hook", "no hooks", "hooks not", "without hooks"],
+                             ["no subagent", "no subagents", "subagents not", "no team", "no teams"],
+                             ["slash command", "slash commands", "via plugin"]],
+            "deprecated_patterns": [],
+        },
+    },
+
     {
         "id": "3.1",
         "category": "Implementation Guidance",
@@ -232,6 +277,120 @@ TESTS = [
             "deprecated_patterns": ["output_format"],
         },
     },
+
+    # 3.4: Implementation Guidance — PDF Processing
+    {
+        "id": "3.4",
+        "category": "Implementation Guidance",
+        "prompt": (
+            "I need to process an 80-page contract PDF through the API — extract "
+            "key clauses, dates, and party names into structured data. What are "
+            "the limits and best practices for PDF processing with Claude?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["100 page", "100 pages", "100-page"],
+                         ["32mb", "32 mb", "32 megabyte"],
+                         ["document", "type.*document"],
+                         ["base64", "url", "file_id", "files api"]],
+            "completeness": [["token counting", "count_tokens", "estimate cost", "estimate token"],
+                             ["structured output", "output_config", "json_schema"],
+                             ["scanned", "ocr"],
+                             ["bedrock", "citation"]],
+            "deprecated_patterns": [],
+        },
+    },
+
+    # 3.5: Implementation Guidance — Streaming with Tool Use
+    {
+        "id": "3.5",
+        "category": "Implementation Guidance",
+        "prompt": (
+            "I'm building a chat interface where Claude uses tools (web search, "
+            "code execution). I want real-time streaming but I'm confused about "
+            "how streaming works when Claude makes tool calls. How do I implement "
+            "streaming with tool use?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["stream", "streaming", "stream: true"],
+                         ["sse", "server-sent events", "server sent events"],
+                         ["tool_use", "tool use", "tool call"],
+                         ["content_block_delta", "content block delta", "delta"]],
+            "completeness": [["message_start", "message start"],
+                             ["stop_reason", "stop reason", "end_turn"],
+                             ["fine-grained", "fine grained", "progressive"],
+                             ["content_block_stop", "content_block_start"]],
+            "deprecated_patterns": [],
+        },
+    },
+
+    # 3.6: Implementation Guidance — Fast Mode
+    {
+        "id": "3.6",
+        "category": "Implementation Guidance",
+        "prompt": (
+            "I need Claude Opus to generate responses faster for my real-time "
+            "application. I heard there's a fast mode. How does it work, what's "
+            "the pricing, and are there any limitations?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["speed", "speed.*fast", "\"fast\"", "'fast'"],
+                         ["fast-mode-2026-02-01", "fast mode", "beta header"],
+                         ["2.5x", "2.5 times", "faster output"],
+                         ["6x", "six times", "$30", "$150"]],
+            "completeness": [["opus 4.6", "opus only", "only opus"],
+                             ["batch", "not available with batch", "no batch"],
+                             ["waitlist", "gated"],
+                             ["prompt cache", "cache invalidat", "invalidates"]],
+            "deprecated_patterns": ["fast mode is free", "available on all models",
+                                    "no additional cost", "sonnet fast mode"],
+        },
+    },
+
+    # 3.7: Implementation Guidance — Automatic Caching
+    {
+        "id": "3.7",
+        "category": "Implementation Guidance",
+        "prompt": (
+            "I have a multi-turn conversation app and I want to use prompt caching "
+            "without manually managing cache breakpoints as the conversation grows. "
+            "Is there a way to make caching automatic?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["automatic caching", "auto caching", "automatic cache", "request level",
+                          "request-level"],
+                         ["cache_control", "cache control"],
+                         ["ephemeral", "\"ephemeral\"", "'ephemeral'"],
+                         ["no manual", "without manual", "automatically"]],
+            "completeness": [["4 breakpoint", "four breakpoint", "breakpoint slot"],
+                             ["walks backward", "nearest eligible", "backward"],
+                             ["block-level", "block level", "explicit", "alongside"],
+                             ["10%", "cost saving", "cached read"]],
+            "deprecated_patterns": [],
+        },
+    },
+
+    # 3.8: Implementation Guidance — Dynamic Filtering
+    {
+        "id": "3.8",
+        "category": "Implementation Guidance",
+        "prompt": (
+            "When I use Claude's web search tool, I get a lot of irrelevant results "
+            "cluttering the context window. Is there a way to filter or clean up "
+            "web search results before they hit the context?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["dynamic filtering", "filter", "filtering"],
+                         ["web_search_20260209", "20260209"],
+                         ["code execution", "code sandbox", "sandbox"],
+                         ["context window", "context", "reduce noise", "clean up"]],
+            "completeness": [["web_fetch_20260209", "web fetch"],
+                             ["opus", "sonnet 4.6"],
+                             ["free", "free when used", "no additional cost"],
+                             ["tool version", "newer version", "updated tool"]],
+            "deprecated_patterns": [],
+        },
+    },
+
     {
         "id": "4.1",
         "category": "Model Selection",
@@ -389,6 +548,32 @@ TESTS = [
         },
     },
 
+    # 5.8: Extension Awareness — Platform Comparison
+    {
+        "id": "5.8",
+        "category": "Extension Awareness",
+        "prompt": (
+            "I built a custom skill for Claude Code and it works great. Now my "
+            "colleague wants to use it on Claude.ai (the web app) and another "
+            "teammate uses Claude Desktop. How do I get the same skill working "
+            "across all three platforms?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["zip", "zip file", "zip upload", "zip package"],
+                         ["settings", "capabilities", "settings > capabilities"],
+                         ["auto-invoke", "auto-invocation", "auto invoke", "automatically trigger",
+                          "automatically invoked"],
+                         ["no slash", "slash commands not", "can't use slash", "without slash",
+                          "no / commands"]],
+            "completeness": [["claude.ai", "web app"],
+                             ["desktop", "claude desktop"],
+                             ["claude code", "cli"],
+                             ["reference file", "reference files", "read tool",
+                              "cannot read reference", "no reference file access"]],
+            "deprecated_patterns": [],
+        },
+    },
+
     # Category 6: Negative Tests (No Change Expected)
     {
         "id": "6.1",
@@ -502,6 +687,31 @@ TESTS = [
                              ["computer use", "alternative"]],
             "deprecated_patterns": ["compile rust directly", "supports all languages natively",
                                     "run any language", "full rust compiler"],
+        },
+    },
+
+    # 7.5: Hallucination Detection — Model Deprecation
+    {
+        "id": "7.5",
+        "category": "Hallucination Detection",
+        "prompt": (
+            "I have a production system using Claude Sonnet 3.7 (claude-3-7-sonnet). "
+            "A teammate says we need to migrate urgently. Is Sonnet 3.7 still available? "
+            "What should we move to?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["retired", "deprecated", "removed", "end of life", "no longer available",
+                          "shut down", "discontinued"],
+                         ["feb 2026", "february 2026"],
+                         ["sonnet 4.5", "sonnet 4.6", "claude-sonnet-4-5", "claude-sonnet-4-6"],
+                         ["migrate", "upgrade", "switch", "move to"]],
+            "completeness": [["haiku 3.5", "haiku 3 retiring", "haiku 3"],
+                             ["breaking change", "breaking", "incompatible", "prefill"],
+                             ["structured output", "output_config"],
+                             ["model id", "model identifier", "claude-sonnet-4"]],
+            "deprecated_patterns": ["sonnet 3.7 is still available", "sonnet 3.7 is supported",
+                                    "sonnet 3.7 is the latest", "3.7 is current",
+                                    "no need to migrate"],
         },
     },
 ]
@@ -943,7 +1153,7 @@ def main():
     with open(report_file, "w") as f:
         f.write(f"# Capabilities Skill Evaluation Report\n\n")
         f.write(f"**Model:** {CONFIG['model']}\n")
-        f.write(f"**Skill Version:** 1.3.0\n")
+        f.write(f"**Skill Version:** 2.0.0\n")
         f.write(f"**Date:** {ts}\n")
         f.write(f"**Runs per test:** {CONFIG['runs']}\n")
         if CONFIG["use_judge"]:

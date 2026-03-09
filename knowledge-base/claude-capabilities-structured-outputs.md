@@ -1,8 +1,8 @@
-# Structured outputs
+Model capabilities
 
-Get validated JSON results from agent workflows
+Structured outputs
 
----
+Copy page
 
 Structured outputs constrain Claude's responses to follow a specific schema, ensuring valid, parseable output for downstream processing. Two complementary features are available:
 
@@ -11,23 +11,23 @@ Structured outputs constrain Claude's responses to follow a specific schema, ens
 
 These features can be used independently or together in the same request.
 
-<Note>
-Structured outputs are generally available on the Claude API for Claude Sonnet 4.5, Claude Opus 4.5, and Claude Haiku 4.5. Structured outputs remain in public beta on Amazon Bedrock and Microsoft Foundry.
-</Note>
+Structured outputs are generally available on the Claude API and Amazon Bedrock for Claude Opus 4.6, Claude Sonnet 4.6, Claude Sonnet 4.5, Claude Opus 4.5, and Claude Haiku 4.5. Structured outputs are in public beta on Microsoft Foundry.
 
-<Tip>
+Prompts and responses using structured outputs are processed with [Zero Data Retention (ZDR)](https://platform.claude.com/docs/en/build-with-claude/zero-data-retention). However, the JSON schema itself is temporarily cached for up to 24 hours for optimization purposes. No prompt or response data is retained.
+
 **Migrating from beta?** The `output_format` parameter has moved to `output_config.format`, and beta headers are no longer required. The old beta header (`structured-outputs-2025-11-13`) and `output_format` parameter will continue working for a transition period. See code examples below for the updated API shape.
-</Tip>
 
 ## Why use structured outputs
 
 Without structured outputs, Claude can generate malformed JSON responses or invalid tool inputs that break your applications. Even with careful prompting, you may encounter:
+
 - Parsing errors from invalid JSON syntax
 - Missing required fields
 - Inconsistent data types
 - Schema violations requiring error handling and retries
 
 Structured outputs guarantee schema-compliant responses through constrained decoding:
+
 - **Always valid**: No more `JSON.parse()` errors
 - **Type safe**: Guaranteed field types and required fields
 - **Reliable**: No retries needed for schema violations
@@ -43,21 +43,21 @@ JSON outputs control Claude's response format, ensuring Claude returns valid JSO
 
 ### Quick start
 
-<CodeGroup>
+Shell
 
-```bash Shell
+```
 curl https://api.anthropic.com/v1/messages \
   -H "content-type: application/json" \
   -H "x-api-key: $ANTHROPIC_API_KEY" \
   -H "anthropic-version: 2023-06-01" \
   -d '{
-    "model": "claude-sonnet-4-5",
+    "model": "claude-opus-4-6",
     "max_tokens": 1024,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Extract the key information from this email: John Smith (john@example.com) is interested in our Enterprise plan and wants to schedule a demo for next Tuesday at 2pm."
-      }
+    "messages": [\
+      {\
+        "role": "user",\
+        "content": "Extract the key information from this email: John Smith (john@example.com) is interested in our Enterprise plan and wants to schedule a demo for next Tuesday at 2pm."\
+      }\
     ],
     "output_config": {
       "format": {
@@ -78,81 +78,9 @@ curl https://api.anthropic.com/v1/messages \
   }'
 ```
 
-```python Python
-import anthropic
-
-client = anthropic.Anthropic()
-
-response = client.messages.create(
-    model="claude-sonnet-4-5",
-    max_tokens=1024,
-    messages=[
-        {
-            "role": "user",
-            "content": "Extract the key information from this email: John Smith (john@example.com) is interested in our Enterprise plan and wants to schedule a demo for next Tuesday at 2pm."
-        }
-    ],
-    output_config={
-        "format": {
-            "type": "json_schema",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "name": {"type": "string"},
-                    "email": {"type": "string"},
-                    "plan_interest": {"type": "string"},
-                    "demo_requested": {"type": "boolean"}
-                },
-                "required": ["name", "email", "plan_interest", "demo_requested"],
-                "additionalProperties": False
-            }
-        }
-    }
-)
-print(response.content[0].text)
-```
-
-```typescript TypeScript
-import Anthropic from '@anthropic-ai/sdk';
-
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY
-});
-
-const response = await client.messages.create({
-  model: "claude-sonnet-4-5",
-  max_tokens: 1024,
-  messages: [
-    {
-      role: "user",
-      content: "Extract the key information from this email: John Smith (john@example.com) is interested in our Enterprise plan and wants to schedule a demo for next Tuesday at 2pm."
-    }
-  ],
-  output_config: {
-    format: {
-      type: "json_schema",
-      schema: {
-        type: "object",
-        properties: {
-          name: { type: "string" },
-          email: { type: "string" },
-          plan_interest: { type: "string" },
-          demo_requested: { type: "boolean" }
-        },
-        required: ["name", "email", "plan_interest", "demo_requested"],
-        additionalProperties: false
-      }
-    }
-  }
-});
-console.log(response.content[0].text);
-```
-
-</CodeGroup>
-
 **Response format:** Valid JSON matching your schema in `response.content[0].text`
 
-```json
+```
 {
   "name": "John Smith",
   "email": "john@example.com",
@@ -163,31 +91,70 @@ console.log(response.content[0].text);
 
 ### How it works
 
-<Steps>
-  <Step title="Define your JSON schema">
-    Create a JSON schema that describes the structure you want Claude to follow. The schema uses standard JSON Schema format with some limitations (see [JSON Schema limitations](#json-schema-limitations)).
-  </Step>
-  <Step title="Add the output_config.format parameter">
-    Include the `output_config.format` parameter in your API request with `type: "json_schema"` and your schema definition.
-  </Step>
-  <Step title="Parse the response">
-    Claude's response will be valid JSON matching your schema, returned in `response.content[0].text`.
-  </Step>
-</Steps>
+1. 1
+
+
+
+Define your JSON schema
+
+
+
+
+
+
+
+Create a JSON schema that describes the structure you want Claude to follow. The schema uses standard JSON Schema format with some limitations (see [JSON Schema limitations](https://platform.claude.com/docs/en/build-with-claude/structured-outputs#json-schema-limitations)).
+
+2. 2
+
+
+
+Add the output\_config.format parameter
+
+
+
+
+
+
+
+Include the `output_config.format` parameter in your API request with `type: "json_schema"` and your schema definition.
+
+3. 3
+
+
+
+Parse the response
+
+
+
+
+
+
+
+Claude's response is valid JSON matching your schema, returned in `response.content[0].text`.
+
 
 ### Working with JSON outputs in SDKs
 
-The Python and TypeScript SDKs provide helpers that make it easier to work with JSON outputs, including schema transformation, automatic validation, and integration with popular schema libraries.
+The SDKs provide helpers that make it easier to work with JSON outputs, including schema transformation, automatic validation, and integration with popular schema libraries.
 
-#### Using Pydantic and Zod
+SDK helper methods (like `.parse()` and Pydantic/Zod integration) still accept `output_format` as a convenience parameter. The SDK handles the translation to `output_config.format` internally. The examples below show the SDK helper syntax.
 
-For Python and TypeScript developers, you can use familiar schema definition tools like Pydantic and Zod instead of writing raw JSON schemas.
+#### Using native schema definitions
 
-<CodeGroup>
+Instead of writing raw JSON schemas, you can use familiar schema definition tools in your language:
 
-```python Python
+- **Python**: [Pydantic](https://docs.pydantic.dev/) models with `client.messages.parse()`
+- **TypeScript**: [Zod](https://zod.dev/) schemas with `zodOutputFormat()`
+- **Java**: Plain Java classes with automatic schema derivation via `outputConfig(Class<T>)`
+- **Ruby**: `Anthropic::BaseModel` classes with `output_config: {format: Model}`
+- **C#**, **Go**, **PHP**: Raw JSON schemas passed via `output_config`
+
+Python
+
+```
 from pydantic import BaseModel
-from anthropic import Anthropic, transform_schema
+from anthropic import Anthropic
 
 class ContactInfo(BaseModel):
     name: str
@@ -197,35 +164,14 @@ class ContactInfo(BaseModel):
 
 client = Anthropic()
 
-# With .create() - requires transform_schema()
-response = client.messages.create(
-    model="claude-sonnet-4-5",
-    max_tokens=1024,
-    messages=[
-        {
-            "role": "user",
-            "content": "Extract the key information from this email: John Smith (john@example.com) is interested in our Enterprise plan and wants to schedule a demo for next Tuesday at 2pm."
-        }
-    ],
-    output_config={
-        "format": {
-            "type": "json_schema",
-            "schema": transform_schema(ContactInfo),
-        }
-    }
-)
-
-print(response.content[0].text)
-
-# With .parse() - can pass Pydantic model directly
 response = client.messages.parse(
-    model="claude-sonnet-4-5",
+    model="claude-opus-4-6",
     max_tokens=1024,
-    messages=[
-        {
-            "role": "user",
-            "content": "Extract the key information from this email: John Smith (john@example.com) is interested in our Enterprise plan and wants to schedule a demo for next Tuesday at 2pm."
-        }
+    messages=[\
+        {\
+            "role": "user",\
+            "content": "Extract the key information from this email: John Smith (john@example.com) is interested in our Enterprise plan and wants to schedule a demo for next Tuesday at 2pm.",\
+        }\
     ],
     output_format=ContactInfo,
 )
@@ -233,102 +179,53 @@ response = client.messages.parse(
 print(response.parsed_output)
 ```
 
-```typescript TypeScript
-import Anthropic from '@anthropic-ai/sdk';
-import { z } from 'zod';
-import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
-
-const ContactInfoSchema = z.object({
-  name: z.string(),
-  email: z.string(),
-  plan_interest: z.string(),
-  demo_requested: z.boolean(),
-});
-
-const client = new Anthropic();
-
-const response = await client.messages.create({
-  model: "claude-sonnet-4-5",
-  max_tokens: 1024,
-  messages: [
-    {
-      role: "user",
-      content: "Extract the key information from this email: John Smith (john@example.com) is interested in our Enterprise plan and wants to schedule a demo for next Tuesday at 2pm."
-    }
-  ],
-  output_config: { format: zodOutputFormat(ContactInfoSchema) },
-});
-
-// Automatically parsed and validated
-console.log(response.content[0].text);
-```
-
-</CodeGroup>
-
 #### SDK-specific methods
 
-**Python: `client.messages.parse()` (Recommended)**
+Each SDK provides helpers that make working with structured outputs easier. See individual SDK pages for full details.
+
+Python
+
+Python
+
+TypeScript
+
+TypeScript
+
+C#
+
+C#
+
+Go
+
+Go
+
+Java
+
+Java
+
+PHP
+
+PHP
+
+Ruby
+
+Ruby
+
+**`client.messages.parse()` (Recommended)**
 
 The `parse()` method automatically transforms your Pydantic model, validates the response, and returns a `parsed_output` attribute.
 
-<section title="Example usage">
+### Example usage
 
-```python
-from pydantic import BaseModel
-import anthropic
-
-class ContactInfo(BaseModel):
-    name: str
-    email: str
-    plan_interest: str
-
-client = anthropic.Anthropic()
-
-response = client.messages.parse(
-    model="claude-sonnet-4-5",
-    max_tokens=1024,
-    messages=[{"role": "user", "content": "..."}],
-    output_format=ContactInfo,
-)
-
-# Access the parsed output directly
-contact = response.parsed_output
-print(contact.name, contact.email)
-```
-
-</section>
-
-**Python: `transform_schema()` helper**
+**`transform_schema()` helper**
 
 For when you need to manually transform schemas before sending, or when you want to modify a Pydantic-generated schema. Unlike `client.messages.parse()`, which transforms provided schemas automatically, this gives you the transformed schema so you can further customize it.
 
-<section title="Example usage">
-
-```python
-from anthropic import transform_schema
-from pydantic import TypeAdapter
-
-# First convert Pydantic model to JSON schema, then transform
-schema = TypeAdapter(ContactInfo).json_schema()
-schema = transform_schema(schema)
-# Modify schema if needed
-schema["properties"]["custom_field"] = {"type": "string"}
-
-response = client.messages.create(
-    model="claude-sonnet-4-5",
-    max_tokens=1024,
-    messages=[{"role": "user", "content": "..."}],
-    output_config={
-        "format": {"type": "json_schema", "schema": schema},
-    },
-)
-```
-
-</section>
+### Example usage
 
 #### How SDK transformation works
 
-Both Python and TypeScript SDKs automatically transform schemas with unsupported features:
+The Python and TypeScript SDKs automatically transform schemas with unsupported features:
 
 1. **Remove unsupported constraints** (e.g., `minimum`, `maximum`, `minLength`, `maxLength`)
 2. **Update descriptions** with constraint info (e.g., "Must be at least 100"), when the constraint is not directly supported with structured outputs
@@ -342,142 +239,11 @@ This means Claude receives a simplified schema, but your code still enforces all
 
 ### Common use cases
 
-<section title="Data extraction">
+### Data extraction
 
-Extract structured data from unstructured text:
+### Classification
 
-<CodeGroup>
-
-```python Python
-from pydantic import BaseModel
-from typing import List
-
-class Invoice(BaseModel):
-    invoice_number: str
-    date: str
-    total_amount: float
-    line_items: List[dict]
-    customer_name: str
-
-response = client.messages.parse(
-    model="claude-sonnet-4-5",
-    output_format=Invoice,
-    messages=[{"role": "user", "content": f"Extract invoice data from: {invoice_text}"}]
-)
-```
-
-```typescript TypeScript
-import { z } from 'zod';
-import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
-
-const InvoiceSchema = z.object({
-  invoice_number: z.string(),
-  date: z.string(),
-  total_amount: z.number(),
-  line_items: z.array(z.record(z.string(), z.any())),
-  customer_name: z.string(),
-});
-
-const response = await client.messages.create({
-  model: "claude-sonnet-4-5",
-  output_config: { format: zodOutputFormat(InvoiceSchema) },
-  messages: [{"role": "user", "content": `Extract invoice data from: ${invoiceText}`}]
-});
-```
-
-</CodeGroup>
-
-</section>
-
-<section title="Classification">
-
-Classify content with structured categories:
-
-<CodeGroup>
-
-```python Python
-from pydantic import BaseModel
-from typing import List
-
-class Classification(BaseModel):
-    category: str
-    confidence: float
-    tags: List[str]
-    sentiment: str
-
-response = client.messages.parse(
-    model="claude-sonnet-4-5",
-    output_format=Classification,
-    messages=[{"role": "user", "content": f"Classify this feedback: {feedback_text}"}]
-)
-```
-
-```typescript TypeScript
-import { z } from 'zod';
-import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
-
-const ClassificationSchema = z.object({
-  category: z.string(),
-  confidence: z.number(),
-  tags: z.array(z.string()),
-  sentiment: z.string(),
-});
-
-const response = await client.messages.create({
-  model: "claude-sonnet-4-5",
-  output_config: { format: zodOutputFormat(ClassificationSchema) },
-  messages: [{"role": "user", "content": `Classify this feedback: ${feedbackText}`}]
-});
-```
-
-</CodeGroup>
-
-</section>
-
-<section title="API response formatting">
-
-Generate API-ready responses:
-
-<CodeGroup>
-
-```python Python
-from pydantic import BaseModel
-from typing import List, Optional
-
-class APIResponse(BaseModel):
-    status: str
-    data: dict
-    errors: Optional[List[dict]]
-    metadata: dict
-
-response = client.messages.parse(
-    model="claude-sonnet-4-5",
-    output_format=APIResponse,
-    messages=[{"role": "user", "content": "Process this request: ..."}]
-)
-```
-
-```typescript TypeScript
-import { z } from 'zod';
-import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
-
-const APIResponseSchema = z.object({
-  status: z.string(),
-  data: z.record(z.string(), z.any()),
-  errors: z.array(z.record(z.string(), z.any())).optional(),
-  metadata: z.record(z.string(), z.any()),
-});
-
-const response = await client.messages.create({
-  model: "claude-sonnet-4-5",
-  output_config: { format: zodOutputFormat(APIResponseSchema) },
-  messages: [{"role": "user", "content": "Process this request: ..."}]
-});
-```
-
-</CodeGroup>
-
-</section>
+### API response formatting
 
 ## Strict tool use
 
@@ -493,6 +259,7 @@ Strict tool use validates tool parameters, ensuring Claude calls your functions 
 Building reliable agentic systems requires guaranteed schema conformance. Without strict mode, Claude might return incompatible types (`"2"` instead of `2`) or missing required fields, breaking your functions and causing runtime errors.
 
 Strict tool use guarantees type-safe parameters:
+
 - Functions receive correctly-typed arguments every time
 - No need to validate and retry tool calls
 - Production-ready agents that work consistently at scale
@@ -501,125 +268,45 @@ For example, suppose a booking system needs `passengers: int`. Without strict mo
 
 ### Quick start
 
-<CodeGroup>
+Shell
 
-```bash Shell
+```
 curl https://api.anthropic.com/v1/messages \
   -H "content-type: application/json" \
   -H "x-api-key: $ANTHROPIC_API_KEY" \
   -H "anthropic-version: 2023-06-01" \
   -d '{
-    "model": "claude-sonnet-4-5",
+    "model": "claude-opus-4-6",
     "max_tokens": 1024,
-    "messages": [
-      {"role": "user", "content": "What is the weather in San Francisco?"}
+    "messages": [\
+      {"role": "user", "content": "What is the weather in San Francisco?"}\
     ],
-    "tools": [{
-      "name": "get_weather",
-      "description": "Get the current weather in a given location",
-      "strict": true,
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "location": {
-            "type": "string",
-            "description": "The city and state, e.g. San Francisco, CA"
-          },
-          "unit": {
-            "type": "string",
-            "enum": ["celsius", "fahrenheit"]
-          }
-        },
-        "required": ["location"],
-        "additionalProperties": false
-      }
+    "tools": [{\
+      "name": "get_weather",\
+      "description": "Get the current weather in a given location",\
+      "strict": true,\
+      "input_schema": {\
+        "type": "object",\
+        "properties": {\
+          "location": {\
+            "type": "string",\
+            "description": "The city and state, e.g. San Francisco, CA"\
+          },\
+          "unit": {\
+            "type": "string",\
+            "enum": ["celsius", "fahrenheit"]\
+          }\
+        },\
+        "required": ["location"],\
+        "additionalProperties": false\
+      }\
     }]
   }'
 ```
 
-```python Python
-import anthropic
-
-client = anthropic.Anthropic()
-
-response = client.messages.create(
-    model="claude-sonnet-4-5",
-    max_tokens=1024,
-    messages=[
-        {"role": "user", "content": "What's the weather like in San Francisco?"}
-    ],
-    tools=[
-        {
-            "name": "get_weather",
-            "description": "Get the current weather in a given location",
-            "strict": True,  # Enable strict mode
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "location": {
-                        "type": "string",
-                        "description": "The city and state, e.g. San Francisco, CA"
-                    },
-                    "unit": {
-                        "type": "string",
-                        "enum": ["celsius", "fahrenheit"],
-                        "description": "The unit of temperature, either 'celsius' or 'fahrenheit'"
-                    }
-                },
-                "required": ["location"],
-                "additionalProperties": False
-            }
-        }
-    ]
-)
-print(response.content)
-```
-
-```typescript TypeScript
-import Anthropic from '@anthropic-ai/sdk';
-
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY
-});
-
-const response = await client.messages.create({
-  model: "claude-sonnet-4-5",
-  max_tokens: 1024,
-  messages: [
-    {
-      role: "user",
-      content: "What's the weather like in San Francisco?"
-    }
-  ],
-  tools: [{
-    name: "get_weather",
-    description: "Get the current weather in a given location",
-    strict: true,  // Enable strict mode
-    input_schema: {
-      type: "object",
-      properties: {
-        location: {
-          type: "string",
-          description: "The city and state, e.g. San Francisco, CA"
-        },
-        unit: {
-          type: "string",
-          enum: ["celsius", "fahrenheit"]
-        }
-      },
-      required: ["location"],
-      additionalProperties: false
-    }
-  }]
-});
-console.log(response.content);
-```
-
-</CodeGroup>
-
 **Response format:** Tool use blocks with validated inputs in `response.content[x].input`
 
-```json
+```
 {
   "type": "tool_use",
   "name": "get_weather",
@@ -630,162 +317,60 @@ console.log(response.content);
 ```
 
 **Guarantees:**
+
 - Tool `input` strictly follows the `input_schema`
 - Tool `name` is always valid (from provided tools or server tools)
 
 ### How it works
 
-<Steps>
-  <Step title="Define your tool schema">
-    Create a JSON schema for your tool's `input_schema`. The schema uses standard JSON Schema format with some limitations (see [JSON Schema limitations](#json-schema-limitations)).
-  </Step>
-  <Step title="Add strict: true">
-    Set `"strict": true` as a top-level property in your tool definition, alongside `name`, `description`, and `input_schema`.
-  </Step>
-  <Step title="Handle tool calls">
-    When Claude uses the tool, the `input` field in the tool_use block will strictly follow your `input_schema`, and the `name` will always be valid.
-  </Step>
-</Steps>
+1. 1
+
+
+
+Define your tool schema
+
+
+
+
+
+
+
+Create a JSON schema for your tool's `input_schema`. The schema uses standard JSON Schema format with some limitations (see [JSON Schema limitations](https://platform.claude.com/docs/en/build-with-claude/structured-outputs#json-schema-limitations)).
+
+2. 2
+
+
+
+Add strict: true
+
+
+
+
+
+
+
+Set `"strict": true` as a top-level property in your tool definition, alongside `name`, `description`, and `input_schema`.
+
+3. 3
+
+
+
+Handle tool calls
+
+
+
+
+
+
+
+When Claude uses the tool, the `input` field in the tool\_use block will strictly follow your `input_schema`, and the `name` will always be valid.
+
 
 ### Common use cases
 
-<section title="Validated tool inputs">
+### Validated tool inputs
 
-Ensure tool parameters exactly match your schema:
-
-<CodeGroup>
-
-```python Python
-response = client.messages.create(
-    model="claude-sonnet-4-5",
-    messages=[{"role": "user", "content": "Search for flights to Tokyo"}],
-    tools=[{
-        "name": "search_flights",
-        "strict": True,
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "destination": {"type": "string"},
-                "departure_date": {"type": "string", "format": "date"},
-                "passengers": {"type": "integer", "enum": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
-            },
-            "required": ["destination", "departure_date"],
-            "additionalProperties": False
-        }
-    }]
-)
-```
-
-```typescript TypeScript
-const response = await client.messages.create({
-  model: "claude-sonnet-4-5",
-  messages: [{"role": "user", "content": "Search for flights to Tokyo"}],
-  tools: [{
-    name: "search_flights",
-    strict: true,
-    input_schema: {
-      type: "object",
-      properties: {
-        destination: {type: "string"},
-        departure_date: {type: "string", format: "date"},
-        passengers: {type: "integer", enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
-      },
-      required: ["destination", "departure_date"],
-      additionalProperties: false
-    }
-  }]
-});
-```
-
-</CodeGroup>
-
-</section>
-
-<section title="Agentic workflow with multiple validated tools">
-
-Build reliable multi-step agents with guaranteed tool parameters:
-
-<CodeGroup>
-
-```python Python
-response = client.messages.create(
-    model="claude-sonnet-4-5",
-    messages=[{"role": "user", "content": "Help me plan a trip to Paris for 2 people"}],
-    tools=[
-        {
-            "name": "search_flights",
-            "strict": True,
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "origin": {"type": "string"},
-                    "destination": {"type": "string"},
-                    "departure_date": {"type": "string", "format": "date"},
-                    "travelers": {"type": "integer", "enum": [1, 2, 3, 4, 5, 6]}
-                },
-                "required": ["origin", "destination", "departure_date"],
-                "additionalProperties": False
-            }
-        },
-        {
-            "name": "search_hotels",
-            "strict": True,
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "city": {"type": "string"},
-                    "check_in": {"type": "string", "format": "date"},
-                    "guests": {"type": "integer", "enum": [1, 2, 3, 4]}
-                },
-                "required": ["city", "check_in"],
-                "additionalProperties": False
-            }
-        }
-    ]
-)
-```
-
-```typescript TypeScript
-const response = await client.messages.create({
-  model: "claude-sonnet-4-5",
-  messages: [{"role": "user", "content": "Help me plan a trip to Paris for 2 people"}],
-  tools: [
-    {
-      name: "search_flights",
-      strict: true,
-      input_schema: {
-        type: "object",
-        properties: {
-          origin: {type: "string"},
-          destination: {type: "string"},
-          departure_date: {type: "string", format: "date"},
-          travelers: {type: "integer", enum: [1, 2, 3, 4, 5, 6]}
-        },
-        required: ["origin", "destination", "departure_date"],
-        additionalProperties: false
-      }
-    },
-    {
-      name: "search_hotels",
-      strict: true,
-      input_schema: {
-        type: "object",
-        properties: {
-          city: {type: "string"},
-          check_in: {type: "string", format: "date"},
-          guests: {type: "integer", enum: [1, 2, 3, 4]}
-        },
-        required: ["city", "check_in"],
-        additionalProperties: false
-      }
-    }
-  ]
-});
-```
-
-</CodeGroup>
-
-</section>
+### Agentic workflow with multiple validated tools
 
 ## Using both features together
 
@@ -796,13 +381,15 @@ JSON outputs and strict tool use solve different problems and can be used togeth
 
 When combined, Claude can call tools with guaranteed-valid parameters AND return structured JSON responses. This is useful for agentic workflows where you need both reliable tool calls and structured final outputs.
 
-<CodeGroup>
+Python
 
-```python Python
+```
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-opus-4-6",
     max_tokens=1024,
-    messages=[{"role": "user", "content": "Help me plan a trip to Paris for next month"}],
+    messages=[\
+        {"role": "user", "content": "Help me plan a trip to Paris for next month"}\
+    ],
     # JSON outputs: structured response format
     output_config={
         "format": {
@@ -811,68 +398,31 @@ response = client.messages.create(
                 "type": "object",
                 "properties": {
                     "summary": {"type": "string"},
-                    "next_steps": {"type": "array", "items": {"type": "string"}}
+                    "next_steps": {"type": "array", "items": {"type": "string"}},
                 },
                 "required": ["summary", "next_steps"],
-                "additionalProperties": False
-            }
+                "additionalProperties": False,
+            },
         }
     },
     # Strict tool use: guaranteed tool parameters
-    tools=[{
-        "name": "search_flights",
-        "strict": True,
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "destination": {"type": "string"},
-                "date": {"type": "string", "format": "date"}
-            },
-            "required": ["destination", "date"],
-            "additionalProperties": False
-        }
-    }]
+    tools=[\
+        {\
+            "name": "search_flights",\
+            "strict": True,\
+            "input_schema": {\
+                "type": "object",\
+                "properties": {\
+                    "destination": {"type": "string"},\
+                    "date": {"type": "string", "format": "date"},\
+                },\
+                "required": ["destination", "date"],\
+                "additionalProperties": False,\
+            },\
+        }\
+    ],
 )
 ```
-
-```typescript TypeScript
-const response = await client.messages.create({
-  model: "claude-sonnet-4-5",
-  max_tokens: 1024,
-  messages: [{ role: "user", content: "Help me plan a trip to Paris for next month" }],
-  // JSON outputs: structured response format
-  output_config: {
-    format: {
-      type: "json_schema",
-      schema: {
-        type: "object",
-        properties: {
-          summary: { type: "string" },
-          next_steps: { type: "array", items: { type: "string" } }
-        },
-        required: ["summary", "next_steps"],
-        additionalProperties: false
-      }
-    }
-  },
-  // Strict tool use: guaranteed tool parameters
-  tools: [{
-    name: "search_flights",
-    strict: true,
-    input_schema: {
-      type: "object",
-      properties: {
-        destination: { type: "string" },
-        date: { type: "string", format: "date" }
-      },
-      required: ["destination", "date"],
-      additionalProperties: false
-    }
-  }]
-});
-```
-
-</CodeGroup>
 
 ## Important considerations
 
@@ -880,9 +430,9 @@ const response = await client.messages.create({
 
 Structured outputs use constrained sampling with compiled grammar artifacts. This introduces some performance characteristics to be aware of:
 
-- **First request latency**: The first time you use a specific schema, there will be additional latency while the grammar is compiled
-- **Automatic caching**: Compiled grammars are cached for 24 hours from last use, making subsequent requests much faster
-- **Cache invalidation**: The cache is invalidated if you change:
+- **First request latency:** The first time you use a specific schema, there is additional latency while the grammar compiles
+- **Automatic caching:** Compiled grammars are cached for 24 hours from last use, making subsequent requests much faster
+- **Cache invalidation:**The cache is invalidated if you change:
   - The JSON schema structure
   - The set of tools in your request (when using both structured outputs and tool use)
   - Changing only `name` or `description` fields does not invalidate the cache
@@ -891,63 +441,61 @@ Structured outputs use constrained sampling with compiled grammar artifacts. Thi
 
 When using structured outputs, Claude automatically receives an additional system prompt explaining the expected output format. This means:
 
-- Your input token count will be slightly higher
+- Your input token count is slightly higher
 - The injected prompt costs you tokens like any other system prompt
-- Changing the `output_config.format` parameter will invalidate any [prompt cache](/docs/en/build-with-claude/prompt-caching) for that conversation thread
+- Changing the `output_config.format` parameter will invalidate any [prompt cache](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) for that conversation thread
 
 ### JSON Schema limitations
 
 Structured outputs support standard JSON Schema with some limitations. Both JSON outputs and strict tool use share these limitations.
 
-<section title="Supported features">
+### Supported features
 
-- All basic types: object, array, string, integer, number, boolean, null
-- `enum` (strings, numbers, bools, or nulls only - no complex types)
-- `const`
-- `anyOf` and `allOf` (with limitations - `allOf` with `$ref` not supported)
-- `$ref`, `$def`, and `definitions` (external `$ref` not supported)
-- `default` property for all supported types
-- `required` and `additionalProperties` (must be set to `false` for objects)
-- String formats: `date-time`, `time`, `date`, `duration`, `email`, `hostname`, `uri`, `ipv4`, `ipv6`, `uuid`
-- Array `minItems` (only values 0 and 1 supported)
+### Not supported
 
-</section>
+### Pattern support (regex)
 
-<section title="Not supported">
+The Python and TypeScript SDKs can automatically transform schemas with unsupported features by removing them and adding constraints to field descriptions. See [SDK-specific methods](https://platform.claude.com/docs/en/build-with-claude/structured-outputs#sdk-specific-methods) for details.
 
-- Recursive schemas
-- Complex types within enums
-- External `$ref` (e.g., `'$ref': 'http://...'`)
-- Numerical constraints (`minimum`, `maximum`, `multipleOf`, etc.)
-- String constraints (`minLength`, `maxLength`)
-- Array constraints beyond `minItems` of 0 or 1
-- `additionalProperties` set to anything other than `false`
+### Property ordering
 
-If you use an unsupported feature, you'll receive a 400 error with details.
+When using structured outputs, properties in objects maintain their defined ordering from your schema, with one important caveat: **required properties appear first, followed by optional properties**.
 
-</section>
+For example, given this schema:
 
-<section title="Pattern support (regex)">
+```
+{
+  "type": "object",
+  "properties": {
+    "notes": { "type": "string" },
+    "name": { "type": "string" },
+    "email": { "type": "string" },
+    "age": { "type": "integer" }
+  },
+  "required": ["name", "email"],
+  "additionalProperties": false
+}
+```
 
-**Supported regex features:**
-- Full matching (`^...$`) and partial matching
-- Quantifiers: `*`, `+`, `?`, simple `{n,m}` cases
-- Character classes: `[]`, `.`, `\d`, `\w`, `\s`
-- Groups: `(...)`
+The output will order properties as:
 
-**NOT supported:**
-- Backreferences to groups (e.g., `\1`, `\2`)
-- Lookahead/lookbehind assertions (e.g., `(?=...)`, `(?!...)`)
-- Word boundaries: `\b`, `\B`
-- Complex `{n,m}` quantifiers with large ranges
+1. `name` (required, in schema order)
+2. `email` (required, in schema order)
+3. `notes` (optional, in schema order)
+4. `age` (optional, in schema order)
 
-Simple regex patterns work well. Complex patterns may result in 400 errors.
+This means the output might look like:
 
-</section>
+```
+{
+  "name": "John Smith",
+  "email": "john@example.com",
+  "notes": "Interested in enterprise plan",
+  "age": 35
+}
+```
 
-<Tip>
-The Python and TypeScript SDKs can automatically transform schemas with unsupported features by removing them and adding constraints to field descriptions. See [SDK-specific methods](#sdk-specific-methods) for details.
-</Tip>
+If property order in the output is important to your application, ensure all properties are marked as required, or account for this reordering in your parsing logic.
 
 ### Invalid outputs
 
@@ -957,7 +505,7 @@ While structured outputs guarantee schema compliance in most cases, there are sc
 
 Claude maintains its safety and helpfulness properties even when using structured outputs. If Claude refuses a request for safety reasons:
 
-- The response will have `stop_reason: "refusal"`
+- The response has `stop_reason: "refusal"`
 - You'll receive a 200 status code
 - You'll be billed for the tokens generated
 - The output may not match your schema because the refusal message takes precedence over schema constraints
@@ -966,36 +514,76 @@ Claude maintains its safety and helpfulness properties even when using structure
 
 If the response is cut off due to reaching the `max_tokens` limit:
 
-- The response will have `stop_reason: "max_tokens"`
+- The response has `stop_reason: "max_tokens"`
 - The output may be incomplete and not match your schema
 - Retry with a higher `max_tokens` value to get the complete structured output
 
-### Schema validation errors
+### Schema complexity limits
 
-If your schema uses unsupported features or is too complex, you'll receive a 400 error:
+Structured outputs work by compiling your JSON schemas into a grammar that constrains Claude's output. More complex schemas produce larger grammars that take longer to compile. To protect against excessive compilation times, the API enforces several complexity limits.
 
-**"Too many recursive definitions in schema"**
-- Cause: Schema has excessive or cyclic recursive definitions
-- Solution: Simplify schema structure, reduce nesting depth
+#### Explicit limits
 
-**"Schema is too complex"**
-- Cause: Schema exceeds complexity limits
-- Solution: Break into smaller schemas, simplify structure, or reduce the number of tools marked as `strict: true`
+The following limits apply to all requests with `output_config.format` or `strict: true`:
+
+| Limit | Value | Description |
+| --- | --- | --- |
+| Strict tools per request | 20 | Maximum number of tools with `strict: true`. Non-strict tools don't count toward this limit. |
+| Optional parameters | 24 | Total optional parameters across all strict tool schemas and JSON output schemas. Each parameter not listed in `required` counts toward this limit. |
+| Parameters with union types | 16 | Total parameters that use `anyOf` or type arrays (e.g., `"type": ["string", "null"]`) across all strict schemas. These are especially expensive because they create exponential compilation cost. |
+
+These limits apply to the combined total across all strict schemas in a single request. For example, if you have 4 strict tools with 6 optional parameters each, you'll reach the 24-parameter limit even though no single tool seems complex.
+
+#### Additional internal limits
+
+Beyond the explicit limits above, there are additional internal limits on the compiled grammar size. These limits exist because schema complexity doesn't reduce to a single dimension: features like optional parameters, union types, nested objects, and number of tools interact with each other in ways that can make the compiled grammar disproportionately large.
+
+When these limits are exceeded, you'll receive a 400 error with the message "Schema is too complex for compilation." These errors mean the combined complexity of your schemas exceeds what can be efficiently compiled, even if each individual limit above is satisfied. As a final stop-gap, the API also enforces a **compilation timeout of 180 seconds**. Schemas that pass all explicit checks but produce very large compiled grammars may hit this timeout.
+
+#### Tips for reducing schema complexity
+
+If you're hitting complexity limits, try these strategies in order:
+
+1. **Mark only critical tools as strict.** If you have many tools, reserve it for tools where schema violations cause real problems, and rely on Claude's natural adherence for simpler tools.
+
+2. **Reduce optional parameters.** Make parameters `required` where possible. Each optional parameter roughly doubles a portion of the grammar's state space. If a parameter always has a reasonable default, consider making it required and having Claude provide that default explicitly.
+
+3. **Simplify nested structures.** Deeply nested objects with optional fields compound the complexity. Flatten structures where possible.
+
+4. **Split into multiple requests.** If you have many strict tools, consider splitting them across separate requests or sub-agents.
+
 
 For persistent issues with valid schemas, [contact support](https://support.claude.com/en/articles/9015913-how-to-get-support) with your schema definition.
 
 ## Feature compatibility
 
 **Works with:**
-- **[Batch processing](/docs/en/build-with-claude/batch-processing)**: Process structured outputs at scale with 50% discount
-- **[Token counting](/docs/en/build-with-claude/token-counting)**: Count tokens without compilation
-- **[Streaming](/docs/en/build-with-claude/streaming)**: Stream structured outputs like normal responses
+
+- **[Batch processing](https://platform.claude.com/docs/en/build-with-claude/batch-processing)**: Process structured outputs at scale with 50% discount
+- **[Token counting](https://platform.claude.com/docs/en/build-with-claude/token-counting)**: Count tokens without compilation
+- **[Streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)**: Stream structured outputs like normal responses
 - **Combined usage**: Use JSON outputs (`output_config.format`) and strict tool use (`strict: true`) together in the same request
 
 **Incompatible with:**
-- **[Citations](/docs/en/build-with-claude/citations)**: Citations require interleaving citation blocks with text, which conflicts with strict JSON schema constraints. Returns 400 error if citations enabled with `output_config.format`.
-- **[Message Prefilling](/docs/en/build-with-claude/prompt-engineering/prefill-claudes-response)**: Incompatible with JSON outputs
 
-<Tip>
-**Grammar scope**: Grammars apply only to Claude's direct output, not to tool use calls, tool results, or thinking tags (when using [Extended Thinking](/docs/en/build-with-claude/extended-thinking)). Grammar state resets between sections, allowing Claude to think freely while still producing structured output in the final response.
-</Tip>
+- **[Citations](https://platform.claude.com/docs/en/build-with-claude/citations)**: Citations require interleaving citation blocks with text, which conflicts with strict JSON schema constraints. Returns 400 error if citations enabled with `output_config.format`.
+- **Message Prefilling**: Incompatible with JSON outputs
+
+**Grammar scope**: Grammars apply only to Claude's direct output, not to tool use calls, tool results, or thinking tags (when using [Extended Thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)). Grammar state resets between sections, allowing Claude to think freely while still producing structured output in the final response.
+
+Was this page helpful?
+
+Ask Docs
+![Chat avatar](https://platform.claude.com/docs/images/book-icon-light.svg)
+
+a.claude.ai
+
+# a.claude.ai is blocked
+
+**a.claude.ai** refused to connect.
+
+ERR\_BLOCKED\_BY\_RESPONSE
+
+**a.claude.ai** refused to connect.
+
+![](<Base64-Image-Removed>)![](<Base64-Image-Removed>)

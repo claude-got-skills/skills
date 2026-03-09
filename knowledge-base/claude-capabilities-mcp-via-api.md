@@ -1,14 +1,16 @@
-# MCP connector
+MCP in the API
 
----
+MCP connector
+
+Copy page
 
 Claude's Model Context Protocol (MCP) connector feature enables you to connect to remote MCP servers directly from the Messages API without a separate MCP client.
 
-<Note>
-  **Current version**: This feature requires the beta header: `"anthropic-beta": "mcp-client-2025-11-20"`
+**Current version**: This feature requires the beta header: `"anthropic-beta": "mcp-client-2025-11-20"`
 
-  The previous version (`mcp-client-2025-04-04`) is deprecated. See the [deprecated version documentation](#deprecated-version-mcp-client-2025-04-04) below.
-</Note>
+The previous version (`mcp-client-2025-04-04`) is deprecated. See the [deprecated version documentation](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector#deprecated-version-mcp-client-2025-04-04) below.
+
+This feature is in beta and is **not** eligible for [Zero Data Retention (ZDR)](https://platform.claude.com/docs/en/build-with-claude/zero-data-retention). Beta features are excluded from ZDR.
 
 ## Key features
 
@@ -36,98 +38,40 @@ The MCP connector uses two components:
 
 This example enables all tools from an MCP server with default configuration:
 
-<CodeGroup>
-```bash Shell
+Shell
+
+```
 curl https://api.anthropic.com/v1/messages \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $ANTHROPIC_API_KEY" \
   -H "anthropic-version: 2023-06-01" \
   -H "anthropic-beta: mcp-client-2025-11-20" \
   -d '{
-    "model": "claude-sonnet-4-5",
+    "model": "claude-opus-4-6",
     "max_tokens": 1000,
     "messages": [{"role": "user", "content": "What tools do you have available?"}],
-    "mcp_servers": [
-      {
-        "type": "url",
-        "url": "https://example-server.modelcontextprotocol.io/sse",
-        "name": "example-mcp",
-        "authorization_token": "YOUR_TOKEN"
-      }
+    "mcp_servers": [\
+      {\
+        "type": "url",\
+        "url": "https://example-server.modelcontextprotocol.io/sse",\
+        "name": "example-mcp",\
+        "authorization_token": "YOUR_TOKEN"\
+      }\
     ],
-    "tools": [
-      {
-        "type": "mcp_toolset",
-        "mcp_server_name": "example-mcp"
-      }
+    "tools": [\
+      {\
+        "type": "mcp_toolset",\
+        "mcp_server_name": "example-mcp"\
+      }\
     ]
   }'
 ```
-
-```typescript TypeScript
-import { Anthropic } from '@anthropic-ai/sdk';
-
-const anthropic = new Anthropic();
-
-const response = await anthropic.beta.messages.create({
-  model: "claude-sonnet-4-5",
-  max_tokens: 1000,
-  messages: [
-    {
-      role: "user",
-      content: "What tools do you have available?",
-    },
-  ],
-  mcp_servers: [
-    {
-      type: "url",
-      url: "https://example-server.modelcontextprotocol.io/sse",
-      name: "example-mcp",
-      authorization_token: "YOUR_TOKEN",
-    },
-  ],
-  tools: [
-    {
-      type: "mcp_toolset",
-      mcp_server_name: "example-mcp",
-    },
-  ],
-  betas: ["mcp-client-2025-11-20"],
-});
-```
-
-```python Python
-import anthropic
-
-client = anthropic.Anthropic()
-
-response = client.beta.messages.create(
-    model="claude-sonnet-4-5",
-    max_tokens=1000,
-    messages=[{
-        "role": "user",
-        "content": "What tools do you have available?"
-    }],
-    mcp_servers=[{
-        "type": "url",
-        "url": "https://mcp.example.com/sse",
-        "name": "example-mcp",
-        "authorization_token": "YOUR_TOKEN"
-    }],
-    tools=[{
-        "type": "mcp_toolset",
-        "mcp_server_name": "example-mcp"
-    }],
-    betas=["mcp-client-2025-11-20"]
-)
-```
-</CodeGroup>
 
 ## MCP server configuration
 
 Each MCP server in the `mcp_servers` array defines the connection details:
 
-```json
+```
 {
   "type": "url",
   "url": "https://example-server.modelcontextprotocol.io/sse",
@@ -139,7 +83,7 @@ Each MCP server in the `mcp_servers` array defines the connection details:
 ### Field descriptions
 
 | Property | Type | Required | Description |
-|----------|------|----------|-------------|
+| --- | --- | --- | --- |
 | `type` | string | Yes | Currently only "url" is supported |
 | `url` | string | Yes | The URL of the MCP server. Must start with https:// |
 | `name` | string | Yes | A unique identifier for this MCP server. Must be referenced by exactly one MCPToolset in the `tools` array. |
@@ -151,7 +95,7 @@ The MCPToolset lives in the `tools` array and configures which tools from the MC
 
 ### Basic structure
 
-```json
+```
 {
   "type": "mcp_toolset",
   "mcp_server_name": "example-mcp",
@@ -171,8 +115,8 @@ The MCPToolset lives in the `tools` array and configures which tools from the MC
 ### Field descriptions
 
 | Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `type` | string | Yes | Must be "mcp_toolset" |
+| --- | --- | --- | --- |
+| `type` | string | Yes | Must be "mcp\_toolset" |
 | `mcp_server_name` | string | Yes | Must match a server name defined in the `mcp_servers` array |
 | `default_config` | object | No | Default configuration applied to all tools in this set. Individual tool configs in `configs` will override these defaults. |
 | `configs` | object | No | Per-tool configuration overrides. Keys are tool names, values are configuration objects. |
@@ -183,9 +127,9 @@ The MCPToolset lives in the `tools` array and configures which tools from the MC
 Each tool (whether configured in `default_config` or in `configs`) supports the following fields:
 
 | Property | Type | Default | Description |
-|----------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `enabled` | boolean | `true` | Whether this tool is enabled |
-| `defer_loading` | boolean | `false` | If true, tool description is not sent to the model initially. Used with [Tool Search Tool](/docs/en/agents-and-tools/tool-use/tool-search-tool). |
+| `defer_loading` | boolean | `false` | If true, tool description is not sent to the model initially. Used with [Tool Search Tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool). |
 
 ### Configuration merging
 
@@ -197,7 +141,7 @@ Configuration values merge with this precedence (highest to lowest):
 
 Example:
 
-```json
+```
 {
   "type": "mcp_toolset",
   "mcp_server_name": "google-calendar-mcp",
@@ -213,8 +157,9 @@ Example:
 ```
 
 Results in:
-- `search_events`: `enabled: false` (from configs), `defer_loading: true` (from default_config)
-- All other tools: `enabled: true` (system default), `defer_loading: true` (from default_config)
+
+- `search_events`: `enabled: false` (from configs), `defer_loading: true` (from default\_config)
+- All other tools: `enabled: true` (system default), `defer_loading: true` (from default\_config)
 
 ## Common configuration patterns
 
@@ -222,10 +167,10 @@ Results in:
 
 The simplest pattern - enable all tools from a server:
 
-```json
+```
 {
   "type": "mcp_toolset",
-  "mcp_server_name": "google-calendar-mcp",
+  "mcp_server_name": "google-calendar-mcp"
 }
 ```
 
@@ -233,7 +178,7 @@ The simplest pattern - enable all tools from a server:
 
 Set `enabled: false` as the default, then explicitly enable specific tools:
 
-```json
+```
 {
   "type": "mcp_toolset",
   "mcp_server_name": "google-calendar-mcp",
@@ -255,7 +200,7 @@ Set `enabled: false` as the default, then explicitly enable specific tools:
 
 Enable all tools by default, then explicitly disable unwanted tools:
 
-```json
+```
 {
   "type": "mcp_toolset",
   "mcp_server_name": "google-calendar-mcp",
@@ -274,7 +219,7 @@ Enable all tools by default, then explicitly disable unwanted tools:
 
 Combine allowlisting with custom configuration for each tool:
 
-```json
+```
 {
   "type": "mcp_toolset",
   "mcp_server_name": "google-calendar-mcp",
@@ -295,8 +240,9 @@ Combine allowlisting with custom configuration for each tool:
 ```
 
 In this example:
+
 - `search_events` is enabled with `defer_loading: false`
-- `list_events` is enabled with `defer_loading: true` (inherited from default_config)
+- `list_events` is enabled with `defer_loading: true` (inherited from default\_config)
 - All other tools are disabled
 
 ## Validation rules
@@ -314,7 +260,7 @@ When Claude uses MCP tools, the response will include two new content block type
 
 ### MCP Tool Use Block
 
-```json
+```
 {
   "type": "mcp_tool_use",
   "id": "mcptoolu_014Q35RayjACSWkSj4X2yov1",
@@ -326,16 +272,16 @@ When Claude uses MCP tools, the response will include two new content block type
 
 ### MCP Tool Result Block
 
-```json
+```
 {
   "type": "mcp_tool_result",
   "tool_use_id": "mcptoolu_014Q35RayjACSWkSj4X2yov1",
   "is_error": false,
-  "content": [
-    {
-      "type": "text",
-      "text": "Hello"
-    }
+  "content": [\
+    {\
+      "type": "text",\
+      "text": "Hello"\
+    }\
   ]
 }
 ```
@@ -344,42 +290,42 @@ When Claude uses MCP tools, the response will include two new content block type
 
 You can connect to multiple MCP servers by including multiple server definitions in `mcp_servers` and a corresponding MCPToolset for each in the `tools` array:
 
-```json
+```
 {
-  "model": "claude-sonnet-4-5",
+  "model": "claude-opus-4-6",
   "max_tokens": 1000,
-  "messages": [
-    {
-      "role": "user",
-      "content": "Use tools from both mcp-server-1 and mcp-server-2 to complete this task"
-    }
+  "messages": [\
+    {\
+      "role": "user",\
+      "content": "Use tools from both mcp-server-1 and mcp-server-2 to complete this task"\
+    }\
   ],
-  "mcp_servers": [
-    {
-      "type": "url",
-      "url": "https://mcp.example1.com/sse",
-      "name": "mcp-server-1",
-      "authorization_token": "TOKEN1"
-    },
-    {
-      "type": "url",
-      "url": "https://mcp.example2.com/sse",
-      "name": "mcp-server-2",
-      "authorization_token": "TOKEN2"
-    }
+  "mcp_servers": [\
+    {\
+      "type": "url",\
+      "url": "https://mcp.example1.com/sse",\
+      "name": "mcp-server-1",\
+      "authorization_token": "TOKEN1"\
+    },\
+    {\
+      "type": "url",\
+      "url": "https://mcp.example2.com/sse",\
+      "name": "mcp-server-2",\
+      "authorization_token": "TOKEN2"\
+    }\
   ],
-  "tools": [
-    {
-      "type": "mcp_toolset",
-      "mcp_server_name": "mcp-server-1"
-    },
-    {
-      "type": "mcp_toolset",
-      "mcp_server_name": "mcp-server-2",
-      "default_config": {
-        "defer_loading": true
-      }
-    }
+  "tools": [\
+    {\
+      "type": "mcp_toolset",\
+      "mcp_server_name": "mcp-server-1"\
+    },\
+    {\
+      "type": "mcp_toolset",\
+      "mcp_server_name": "mcp-server-2",\
+      "default_config": {\
+        "defer_loading": true\
+      }\
+    }\
   ]
 }
 ```
@@ -395,36 +341,158 @@ The MCP inspector can guide you through the process of obtaining an access token
 
 1. Run the inspector with the following command. You need Node.js installed on your machine.
 
-   ```bash
-   npx @modelcontextprotocol/inspector
-   ```
+
+
+
+
+
+
+```
+npx @modelcontextprotocol/inspector
+```
 
 2. In the sidebar on the left, for "Transport type", select either "SSE" or "Streamable HTTP".
+
 3. Enter the URL of the MCP server.
+
 4. In the right area, click on the "Open Auth Settings" button after "Need to configure authentication?".
+
 5. Click "Quick OAuth Flow" and authorize on the OAuth screen.
+
 6. Follow the steps in the "OAuth Flow Progress" section of the inspector and click "Continue" until you reach "Authentication complete".
+
 7. Copy the `access_token` value.
+
 8. Paste it into the `authorization_token` field in your MCP server configuration.
+
 
 ### Using the access token
 
 Once you've obtained an access token using either OAuth flow above, you can use it in your MCP server configuration:
 
-```json
+```
 {
-  "mcp_servers": [
-    {
-      "type": "url",
-      "url": "https://example-server.modelcontextprotocol.io/sse",
-      "name": "authenticated-server",
-      "authorization_token": "YOUR_ACCESS_TOKEN_HERE"
-    }
+  "mcp_servers": [\
+    {\
+      "type": "url",\
+      "url": "https://example-server.modelcontextprotocol.io/sse",\
+      "name": "authenticated-server",\
+      "authorization_token": "YOUR_ACCESS_TOKEN_HERE"\
+    }\
   ]
 }
 ```
 
 For detailed explanations of the OAuth flow, refer to the [Authorization section](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) in the MCP specification.
+
+## Client-side MCP helpers (TypeScript)
+
+If you manage your own MCP client connection (for example, with local stdio servers, MCP prompts, or MCP resources), the TypeScript SDK provides helper functions that convert between MCP types and Claude API types. This eliminates manual conversion code when using the [MCP SDK](https://github.com/modelcontextprotocol/typescript-sdk) alongside the Anthropic SDK.
+
+These helpers are currently available in the TypeScript SDK only.
+
+Use the [`mcp_servers` API parameter](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector#using-the-mcp-connector-in-the-messages-api) when you have remote servers accessible via URL and only need tool support. If you're using the [Agent SDK](https://platform.claude.com/docs/en/agent-sdk/mcp), MCP connections are managed automatically. Use the client-side helpers when you need local servers, prompts, resources, or more control over the connection with the base SDK.
+
+### Installation
+
+Install both the Anthropic SDK and the MCP SDK:
+
+```
+npm install @anthropic-ai/sdk @modelcontextprotocol/sdk
+```
+
+### Available helpers
+
+Import the helpers from the beta namespace:
+
+```
+import {
+  mcpTools,
+  mcpMessages,
+  mcpResourceToContent,
+  mcpResourceToFile
+} from "@anthropic-ai/sdk/helpers/beta/mcp";
+```
+
+| Helper | Description |
+| --- | --- |
+| `mcpTools(tools, mcpClient)` | Converts MCP tools to Claude API tools for use with `client.beta.messages.toolRunner()` |
+| `mcpMessages(messages)` | Converts MCP prompt messages to Claude API message format |
+| `mcpResourceToContent(resource)` | Converts an MCP resource to a Claude API content block |
+| `mcpResourceToFile(resource)` | Converts an MCP resource to a file object for upload |
+
+### Use MCP tools
+
+Convert MCP tools for use with the SDK's [tool runner](https://platform.claude.com/docs/en/agents-and-tools/tool-use/implement-tool-use#tool-runner-beta), which handles tool execution automatically:
+
+```
+import { mcpTools } from "@anthropic-ai/sdk/helpers/beta/mcp";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+
+const anthropic = new Anthropic();
+
+// Connect to an MCP server
+const transport = new StdioClientTransport({ command: "mcp-server", args: [] });
+const mcpClient = new Client({ name: "my-client", version: "1.0.0" });
+await mcpClient.connect(transport);
+
+// List tools and convert them for the Claude API
+const { tools } = await mcpClient.listTools();
+const runner = await anthropic.beta.messages.toolRunner({
+  model: "claude-sonnet-4-6",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "What tools do you have available?" }],
+  tools: mcpTools(tools, mcpClient)
+});
+```
+
+### Use MCP prompts
+
+Convert MCP prompt messages into Claude API message format:
+
+```
+import { mcpMessages } from "@anthropic-ai/sdk/helpers/beta/mcp";
+
+const { messages } = await mcpClient.getPrompt({ name: "my-prompt" });
+const response = await anthropic.beta.messages.create({
+  model: "claude-sonnet-4-6",
+  max_tokens: 1024,
+  messages: mcpMessages(messages)
+});
+```
+
+### Use MCP resources
+
+Convert MCP resources into content blocks to include in messages, or into file objects for upload:
+
+```
+import { mcpResourceToContent, mcpResourceToFile } from "@anthropic-ai/sdk/helpers/beta/mcp";
+
+// As a content block in a message
+const resource = await mcpClient.readResource({ uri: "file:///path/to/doc.txt" });
+await anthropic.beta.messages.create({
+  model: "claude-sonnet-4-6",
+  max_tokens: 1024,
+  messages: [\
+    {\
+      role: "user",\
+      content: [\
+        mcpResourceToContent(resource),\
+        { type: "text", text: "Summarize this document" }\
+      ]\
+    }\
+  ]
+});
+
+// As a file upload
+const fileResource = await mcpClient.readResource({ uri: "file:///path/to/data.json" });
+await anthropic.beta.files.upload({ file: mcpResourceToFile(fileResource) });
+```
+
+### Error handling
+
+The conversion functions throw `UnsupportedMCPValueError` if an MCP value isn't supported by the Claude API. This can happen with unsupported content types, MIME types, or non-HTTP resource links.
 
 ## Migration guide
 
@@ -440,57 +508,61 @@ If you're using the deprecated `mcp-client-2025-04-04` beta header, follow this 
 
 **Before (deprecated):**
 
-```json
+```
 {
-  "model": "claude-sonnet-4-5",
+  "model": "claude-opus-4-6",
   "max_tokens": 1000,
-  "messages": [...],
-  "mcp_servers": [
-    {
-      "type": "url",
-      "url": "https://mcp.example.com/sse",
-      "name": "example-mcp",
-      "authorization_token": "YOUR_TOKEN",
-      "tool_configuration": {
-        "enabled": true,
-        "allowed_tools": ["tool1", "tool2"]
-      }
-    }
+  "messages": [\
+    // ...\
+  ],
+  "mcp_servers": [\
+    {\
+      "type": "url",\
+      "url": "https://mcp.example.com/sse",\
+      "name": "example-mcp",\
+      "authorization_token": "YOUR_TOKEN",\
+      "tool_configuration": {\
+        "enabled": true,\
+        "allowed_tools": ["tool1", "tool2"]\
+      }\
+    }\
   ]
 }
 ```
 
 **After (current):**
 
-```json
+```
 {
-  "model": "claude-sonnet-4-5",
+  "model": "claude-opus-4-6",
   "max_tokens": 1000,
-  "messages": [...],
-  "mcp_servers": [
-    {
-      "type": "url",
-      "url": "https://mcp.example.com/sse",
-      "name": "example-mcp",
-      "authorization_token": "YOUR_TOKEN"
-    }
+  "messages": [\
+    // ...\
   ],
-  "tools": [
-    {
-      "type": "mcp_toolset",
-      "mcp_server_name": "example-mcp",
-      "default_config": {
-        "enabled": false
-      },
-      "configs": {
-        "tool1": {
-          "enabled": true
-        },
-        "tool2": {
-          "enabled": true
-        }
-      }
-    }
+  "mcp_servers": [\
+    {\
+      "type": "url",\
+      "url": "https://mcp.example.com/sse",\
+      "name": "example-mcp",\
+      "authorization_token": "YOUR_TOKEN"\
+    }\
+  ],
+  "tools": [\
+    {\
+      "type": "mcp_toolset",\
+      "mcp_server_name": "example-mcp",\
+      "default_config": {\
+        "enabled": false\
+      },\
+      "configs": {\
+        "tool1": {\
+          "enabled": true\
+        },\
+        "tool2": {\
+          "enabled": true\
+        }\
+      }\
+    }\
   ]
 }
 ```
@@ -498,32 +570,30 @@ If you're using the deprecated `mcp-client-2025-04-04` beta header, follow this 
 ### Common migration patterns
 
 | Old pattern | New pattern |
-|-------------|-------------|
+| --- | --- |
 | No `tool_configuration` (all tools enabled) | MCPToolset with no `default_config` or `configs` |
 | `tool_configuration.enabled: false` | MCPToolset with `default_config.enabled: false` |
 | `tool_configuration.allowed_tools: [...]` | MCPToolset with `default_config.enabled: false` and specific tools enabled in `configs` |
 
 ## Deprecated version: mcp-client-2025-04-04
 
-<Note type="warning">
-  This version is deprecated. Please migrate to `mcp-client-2025-11-20` using the [migration guide](#migration-guide) above.
-</Note>
+This version is deprecated. Migrate to `mcp-client-2025-11-20` using the [migration guide](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector#migration-guide) above.
 
 The previous version of the MCP connector included tool configuration directly in the MCP server definition:
 
-```json
+```
 {
-  "mcp_servers": [
-    {
-      "type": "url",
-      "url": "https://example-server.modelcontextprotocol.io/sse",
-      "name": "example-mcp",
-      "authorization_token": "YOUR_TOKEN",
-      "tool_configuration": {
-        "enabled": true,
-        "allowed_tools": ["example_tool_1", "example_tool_2"]
-      }
-    }
+  "mcp_servers": [\
+    {\
+      "type": "url",\
+      "url": "https://example-server.modelcontextprotocol.io/sse",\
+      "name": "example-mcp",\
+      "authorization_token": "YOUR_TOKEN",\
+      "tool_configuration": {\
+        "enabled": true,\
+        "allowed_tools": ["example_tool_1", "example_tool_2"]\
+      }\
+    }\
   ]
 }
 ```
@@ -531,7 +601,24 @@ The previous version of the MCP connector included tool configuration directly i
 ### Deprecated field descriptions
 
 | Property | Type | Description |
-|----------|------|-------------|
+| --- | --- | --- |
 | `tool_configuration` | object | **Deprecated**: Use MCPToolset in the `tools` array instead |
 | `tool_configuration.enabled` | boolean | **Deprecated**: Use `default_config.enabled` in MCPToolset |
 | `tool_configuration.allowed_tools` | array | **Deprecated**: Use allowlist pattern with `configs` in MCPToolset |
+
+Was this page helpful?
+
+Ask Docs
+![Chat avatar](https://platform.claude.com/docs/images/book-icon-light.svg)
+
+a.claude.ai
+
+# a.claude.ai is blocked
+
+**a.claude.ai** refused to connect.
+
+ERR\_BLOCKED\_BY\_RESPONSE
+
+**a.claude.ai** refused to connect.
+
+![](<Base64-Image-Removed>)![](<Base64-Image-Removed>)
