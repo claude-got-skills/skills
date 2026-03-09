@@ -1,8 +1,13 @@
-# Freshness Diff Report
+# Freshness Diff Report (ARCHIVED)
 
 **Generated:** 2026-03-07
+**Archived:** 2026-03-09 (v2.0.0 release)
 **Skill last updated:** 2026-02-11
 **Comparison window:** 2026-02-11 to 2026-03-07
+
+> **Resolution status:** 14/16 items resolved in v2.0.0.
+> - Item 14 (1M context tier requirement): Unverified — currently says "tier 3+" in api-features.md. Needs official confirmation.
+> - Item 16 (KB file refresh): Pending — 28 knowledge-base source files need re-scraping. Tracked as separate work item.
 
 Sources scraped:
 - API Release Notes: https://platform.claude.com/docs/en/release-notes/overview
