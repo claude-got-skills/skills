@@ -40,16 +40,16 @@ PROMPT_COUNT=5
 
 PROMPT_IDS_0="P1"; PROMPT_IDS_1="P2"; PROMPT_IDS_2="P3"; PROMPT_IDS_3="P4"; PROMPT_IDS_4="P5"
 
-PROMPT_CATEGORIES_0="Architecture / API"
+PROMPT_CATEGORIES_0="Vision / PDF"
 PROMPT_CATEGORIES_1="API Features"
 PROMPT_CATEGORIES_2="Model Selection"
-PROMPT_CATEGORIES_3="Extension Patterns"
+PROMPT_CATEGORIES_3="Platform Comparison"
 PROMPT_CATEGORIES_4="Product Capabilities"
 
-PROMPT_TEXTS_0="I need to build a document processing pipeline in Python that handles 50-page docs. What's the best API setup for this?"
+PROMPT_TEXTS_0="I want to send product photos and a PDF spec sheet to Claude through the API. What image and PDF formats are supported, what are the limits, and how do I send them?"
 PROMPT_TEXTS_1="What's the difference between extended thinking and adaptive thinking? When should I use each?"
 PROMPT_TEXTS_2="I need the right Claude model for a customer support chatbot - it needs to be fast, cheap, and accurate. What do you recommend?"
-PROMPT_TEXTS_3="I have a code review checklist that I repeat in every prompt when using Claude Code. Is there a better way to do this?"
+PROMPT_TEXTS_3="I built a skill for Claude Code. How do I get the same skill working on Claude.ai and Claude Desktop? What differences should I expect?"
 PROMPT_TEXTS_4="Can Claude remember what we talked about last week in a different conversation?"
 
 get_prompt_id() { eval echo "\$PROMPT_IDS_$1"; }
