@@ -23,6 +23,10 @@ features.
 - [Data Residency](#data-residency)
 - [Batch Processing](#batch-processing)
 - [Token Counting](#token-counting)
+- [Vision & Image Processing](#vision--image-processing)
+- [PDF Processing](#pdf-processing)
+- [Streaming](#streaming)
+- [Rate Limits & Usage Tiers](#rate-limits--usage-tiers)
 
 ---
 
@@ -457,6 +461,153 @@ whether content fits within context window limits.
 
 ---
 
+## Vision & Image Processing
+
+**Status:** GA | **Models:** All current | **Header:** None
+
+All Claude models natively analyze images without special configuration.
+
+### Sending Images
+
+Three methods for providing images:
+
+**Base64 (inline):**
+```python
+messages = [{
+    "role": "user",
+    "content": [
+        {"type": "text", "text": "What's in this image?"},
+        {
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": "image/png",
+                "data": "iVBOR..."
+            }
+        }
+    ]
+}]
+```
+
+**URL:**
+```python
+{"type": "image", "source": {"type": "url", "url": "https://example.com/image.png"}}
+```
+
+**Files API (file_id):**
+```python
+{"type": "image", "source": {"type": "file", "file_id": "file_abc123"}}
+```
+
+### Supported Formats
+JPEG, PNG, GIF (first frame), WebP. Max ~20MB per image.
+
+### Token Costs
+Images are resized and tokenized based on dimensions. Approximate formula:
+tokens ≈ (width × height) / 750. A 1000×1000 image ≈ 1,333 tokens.
+
+### Multi-Image
+Multiple images per message supported. Each adds to token count independently.
+
+### Limitations
+- No real-time video analysis (extract frames first)
+- OCR accuracy varies with image quality
+- Spatial reasoning (exact coordinates) is approximate
+
+---
+
+## PDF Processing
+
+**Status:** GA | **Models:** All current | **Header:** None
+
+### Limits
+- Maximum 32MB per PDF
+- Maximum 100 pages per request
+- Scanned PDFs supported (OCR applied automatically)
+
+### Sending PDFs
+
+**Base64:**
+```python
+{"type": "document", "source": {"type": "base64", "media_type": "application/pdf", "data": "..."}}
+```
+
+**URL:**
+```python
+{"type": "document", "source": {"type": "url", "url": "https://example.com/doc.pdf"}}
+```
+
+**Files API:**
+```python
+{"type": "document", "source": {"type": "file", "file_id": "file_abc123"}}
+```
+
+### Platform Notes
+- **Bedrock**: Citations must be enabled for visual PDF analysis
+- **All platforms**: Use token counting API to estimate costs before sending large PDFs
+
+---
+
+## Streaming
+
+**Status:** GA | **Models:** All current | **Header:** None
+
+Real-time Server-Sent Events (SSE) responses.
+
+```python
+with client.messages.stream(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "..."}]
+) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)
+```
+
+### Event Types
+- `message_start` — message metadata
+- `content_block_start` — new content block (text or tool_use)
+- `content_block_delta` — incremental content
+- `content_block_stop` — block complete
+- `message_delta` — usage stats, stop_reason
+- `message_stop` — message complete
+
+### Tool Use with Streaming
+Tool call parameters stream progressively via `content_block_delta` events.
+When `stop_reason: "tool_use"`, extract tool inputs and submit results to
+continue the conversation.
+
+### Fine-grained Tool Streaming
+GA feature — stream individual characters of tool call parameters for
+responsive UIs that show tool inputs as they're generated.
+
+---
+
+## Rate Limits & Usage Tiers
+
+**Status:** GA | **Header:** None
+
+### Tier System
+API access is tiered (1-4) based on usage history and payment. Higher tiers
+unlock higher rate limits and features (e.g., 1M context requires tier 3+).
+
+### Rate Limit Headers
+Every response includes rate limit information:
+- `anthropic-ratelimit-requests-limit` / `-remaining` / `-reset`
+- `anthropic-ratelimit-tokens-limit` / `-remaining` / `-reset`
+
+### Handling 429 Errors
+```python
+# SDKs auto-retry 429 errors (up to 2 retries by default)
+# For manual handling, check the Retry-After header
+```
+
+### Key Limits
+Rate limits vary by model and tier. Opus models have lower request limits
+than Sonnet/Haiku. Check your current tier at console.anthropic.com.
+
+---
+
 ## Platform Availability Matrix
 
 | Feature | Claude API | Bedrock | Vertex AI | Azure/Foundry |
@@ -471,6 +622,9 @@ whether content fits within context window limits.
 | Computer use | Beta | Beta | Beta | Beta |
 | 1M context | Beta | Check | Check | Check |
 | Tool search | GA | - | - | - |
+| Vision | GA | GA | GA | GA |
+| PDF processing | GA | GA | GA | GA |
+| Streaming | GA | GA | GA | GA |
 
 Dash (-) indicates not currently available on that platform. "Check" indicates
 support may have been added since last update.

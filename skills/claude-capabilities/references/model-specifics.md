@@ -283,3 +283,15 @@ All Opus 4.5 migration steps above, plus:
 - Use batch processing for non-time-sensitive workloads (50% savings)
 - Avoid 1M context unless necessary (premium pricing beyond 200K)
 - Use `effort: "low"` for simple tasks, `effort: "high"` for complex ones
+
+---
+
+## Common Misconceptions
+
+| Claim | Reality |
+|-------|---------|
+| "Claude supports embeddings" | No. Use a dedicated embeddings model (e.g., Voyage AI) |
+| "I can fine-tune Claude" | No fine-tuning available via public API. Use system prompts, skills, or Projects for customisation |
+| "Claude can run any language" | Code execution supports Python + common libraries. For other languages, use Bash tool or external containers |
+| "Claude remembers by default" | No default cross-conversation memory. Enable via Memory tool (GA) with client-side storage |
+| "Claude has internet access" | Not by default. Enable via Web Search/Fetch tools or MCP servers |

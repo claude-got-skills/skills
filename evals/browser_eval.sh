@@ -62,14 +62,17 @@ log() { echo "[$(date +%H:%M:%S)] $*"; }
 log_error() { echo "[$(date +%H:%M:%S)] ERROR: $*" >&2; }
 log_warn() { echo "[$(date +%H:%M:%S)] WARN: $*" >&2; }
 
+CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+CHROME_ARGS="--disable-blink-features=AutomationControlled"
+
 ab() {
-  # Wrapper: runs agent-browser with session
-  agent-browser --session "$SESSION" "$@"
+  # Wrapper: runs agent-browser with session, using real Chrome to avoid bot detection
+  agent-browser --session "$SESSION" --executable-path "$CHROME_PATH" --args "$CHROME_ARGS" "$@"
 }
 
 ab_headed() {
-  # Wrapper: runs agent-browser in headed mode with session
-  agent-browser --session "$SESSION" --headed "$@"
+  # Wrapper: runs agent-browser in headed mode with session, using real Chrome
+  agent-browser --session "$SESSION" --headed --executable-path "$CHROME_PATH" --args "$CHROME_ARGS" "$@"
 }
 
 cleanup_session() {
