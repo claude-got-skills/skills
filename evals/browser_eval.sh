@@ -90,11 +90,12 @@ do_auth() {
   ab_headed open "https://claude.ai/login"
 
   log "Waiting for successful login (up to 120s)..."
-  log "You should see claude.ai/new or claude.ai/chat after logging in."
+  log "You should see the Claude.ai home page after logging in."
 
-  # Wait for redirect to authenticated page
+  # Wait for redirect to authenticated page (claude.ai redirects vary: /new, /chat, or just /)
   if ab wait --url "*claude.ai/new*" --timeout 120000 2>/dev/null || \
-     ab wait --url "*claude.ai/chat*" --timeout 5000 2>/dev/null; then
+     ab wait --url "*claude.ai/chat*" --timeout 5000 2>/dev/null || \
+     ab wait --url "https://claude.ai/" --timeout 5000 2>/dev/null; then
     log "Login detected. Saving auth state..."
     ab state save "$AUTH_STATE"
     log "Auth state saved to: $AUTH_STATE"
@@ -116,8 +117,8 @@ validate_auth() {
   fi
 
   log "Loading auth state and validating session..."
-  ab state load "$AUTH_STATE"
-  ab open "https://claude.ai/new"
+  # Load state via --state flag on first open (state load requires no running browser)
+  agent-browser --session "$SESSION" --executable-path "$CHROME_PATH" --args "$CHROME_ARGS" --state "$AUTH_STATE" open "https://claude.ai/new"
 
   # Give page time to settle and potentially redirect
   sleep 3
