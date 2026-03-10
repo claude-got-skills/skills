@@ -12,7 +12,11 @@ fi
 CONTENT=$(cat "$QUICK_REF")
 
 # Output as JSON with additionalContext for SessionStart
-python3 -c "
+# Uses jq if available, falls back to python3
+if command -v jq &>/dev/null; then
+  jq -Rs '{hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: .}}' <<< "$CONTENT"
+else
+  python3 -c "
 import json, sys
 content = sys.stdin.read()
 print(json.dumps({
@@ -22,3 +26,4 @@ print(json.dumps({
     }
 }))
 " <<< "$CONTENT"
+fi
