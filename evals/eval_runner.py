@@ -714,6 +714,258 @@ TESTS = [
                                     "no need to migrate"],
         },
     },
+
+    # ================================================================
+    # Category 8: Cross-Platform Awareness
+    # Tests whether the skill helps Claude guide users to capabilities
+    # on OTHER platforms, not just confirm/deny for their current one.
+    # ================================================================
+
+    # 8.1: Desktop user asking about automation → should learn about Code
+    {
+        "id": "8.1",
+        "category": "Cross-Platform Awareness",
+        "prompt": (
+            "I'm using Claude Desktop for my daily work. I need to set up "
+            "automated tasks — like running linting after every file edit and "
+            "monitoring a service every 5 minutes. Is any of this possible?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["claude code", "cli", "code cli"],
+                         ["hook", "hooks"],
+                         ["/loop", "loop", "recurring"],
+                         ["cron", "schedule", "scheduled"],
+                         ["not available on desktop", "not supported on desktop",
+                          "desktop doesn't", "desktop does not"]],
+            "completeness": [["posttooluse", "post tool use", "post-tool-use", "lifecycle"],
+                             ["background", "background task", "ctrl+b"],
+                             ["deterministic", "no tokens", "no llm"],
+                             ["mcp", "mcp server"]],
+            "deprecated_patterns": ["desktop supports hooks", "desktop has automation",
+                                    "desktop can schedule", "desktop supports /loop"],
+        },
+    },
+
+    # 8.2: Claude.ai user asking about skills → should learn Code slash commands
+    {
+        "id": "8.2",
+        "category": "Cross-Platform Awareness",
+        "prompt": (
+            "I installed a skill on Claude.ai by uploading a ZIP file. It works "
+            "when I ask about the topic, but I can't figure out how to invoke it "
+            "directly by name. Is there a way to trigger a specific skill on demand?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["auto-invoke", "auto-invocation", "auto invoke",
+                          "automatically trigger", "automatically invoked"],
+                         ["no slash", "slash commands not", "can't use slash",
+                          "no / commands", "no slash command"],
+                         ["claude code", "cli"],
+                         ["slash command", "/name", "slash /"]],
+            "completeness": [["natural language", "describe your need", "ask about"],
+                             ["plugin", "plugins", "via plugin"],
+                             ["cowork", "co-work"],
+                             ["bundled", "built-in", "/simplify", "/batch", "/debug", "/loop"]],
+            "deprecated_patterns": ["slash commands work on claude.ai",
+                                    "type / to invoke", "use / on claude.ai"],
+        },
+    },
+
+    # 8.3: API user asking about persistent context → should learn CLAUDE.md + Projects
+    {
+        "id": "8.3",
+        "category": "Cross-Platform Awareness",
+        "prompt": (
+            "I'm building a product with the Claude API. I want to store our "
+            "company's coding standards and style guide so Claude always knows "
+            "them. Right now I'm pasting them into system prompts every time. "
+            "Is there a better way?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["system prompt", "system message"],
+                         ["claude.md", "CLAUDE.md"],
+                         ["project", "projects"],
+                         ["skill", "skills"],
+                         ["prompt caching", "caching", "cache"]],
+            "completeness": [["claude code", "cli"],
+                             ["claude.ai", "web app"],
+                             ["persistent", "persists", "always loaded"],
+                             ["reference file", "reference files", "on-demand"]],
+            "deprecated_patterns": [],
+        },
+    },
+
+    # 8.4: Code user asking about Projects and Artifacts → should learn Claude.ai features
+    {
+        "id": "8.4",
+        "category": "Cross-Platform Awareness",
+        "prompt": (
+            "I use Claude Code in my terminal every day. A colleague showed me "
+            "something on Claude.ai where they had a 'Project' with uploaded "
+            "documents that Claude always referenced. They also had some kind of "
+            "interactive widget Claude created. What are these features, and can "
+            "I get them in Claude Code?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["project", "projects"],
+                         ["artifact", "artifacts", "mcp app", "mcp apps"],
+                         ["claude.ai", "web app", "web interface"],
+                         ["claude.md", "CLAUDE.md"]],
+            "completeness": [["persistent context", "always referenced", "project knowledge"],
+                             ["desktop", "claude desktop"],
+                             ["interactive", "html", "ui"],
+                             ["equivalent", "alternative", "instead"]],
+            "deprecated_patterns": ["projects are available in claude code",
+                                    "artifacts work in claude code"],
+        },
+    },
+
+    # 8.5: CoWork user asking about what they're missing
+    {
+        "id": "8.5",
+        "category": "Cross-Platform Awareness",
+        "prompt": (
+            "My team uses Claude in CoWork. We have skills and MCP integrations "
+            "through plugins. But I keep hearing about Claude Code features like "
+            "'subagents', 'hooks', and 'agent teams'. What are we missing by "
+            "being on CoWork instead of Claude Code?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["subagent", "subagents", "agent tool"],
+                         ["hook", "hooks"],
+                         ["agent team", "agent teams", "team", "teams"],
+                         ["not available", "not supported", "missing", "don't have",
+                          "doesn't support"]],
+            "completeness": [["background", "background task", "/loop"],
+                             ["claude.md", "CLAUDE.md", ".claude/rules"],
+                             ["plugin", "plugins"],
+                             ["browser", "browser automation"]],
+            "deprecated_patterns": ["cowork supports hooks", "cowork has subagents",
+                                    "cowork supports agent teams",
+                                    "cowork supports background tasks"],
+        },
+    },
+
+    # 8.6: MCP availability across platforms
+    {
+        "id": "8.6",
+        "category": "Cross-Platform Awareness",
+        "prompt": (
+            "Can Claude connect to external services like Slack, GitHub, and "
+            "databases? I need to set this up but I'm not sure which Claude "
+            "platform to use. I've tried Claude.ai, Desktop, and Claude Code."
+        ),
+        "scoring_keywords": {
+            "accuracy": [["mcp", "mcp server", "mcp connector"],
+                         ["claude.ai", "web"],
+                         ["desktop", "claude desktop"],
+                         ["claude code", "cli"],
+                         ["connector", "connectors"]],
+            "completeness": [["settings", "config", "configuration"],
+                             ["stdio", "sse", "http"],
+                             ["plugin", "plugins"],
+                             ["api", "messages api", "beta header"]],
+            "deprecated_patterns": [],
+        },
+    },
+
+    # 8.7: Desktop user asking about memory → full landscape
+    {
+        "id": "8.7",
+        "category": "Cross-Platform Awareness",
+        "prompt": (
+            "I use Claude Desktop and I wish it could remember my preferences "
+            "across conversations — like my coding style, project names, and "
+            "which frameworks I use. What are my options?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["memory tool", "memory_20250818", "memory"],
+                         ["project", "projects"],
+                         ["claude.md", "CLAUDE.md"],
+                         ["skill", "skills"]],
+            "completeness": [["claude code", "cli"],
+                             ["claude.ai", "web"],
+                             ["persistent", "cross-conversation", "between conversation"],
+                             ["api", "client-side", "client side"]],
+            "deprecated_patterns": ["memory is not available", "claude cannot remember",
+                                    "no way to persist"],
+        },
+    },
+
+    # 8.8: Full extension pattern matrix
+    {
+        "id": "8.8",
+        "category": "Cross-Platform Awareness",
+        "prompt": (
+            "I want to understand all the different ways I can extend and "
+            "customize Claude. I use a mix of Claude.ai for brainstorming, "
+            "Claude Code for development, and the API for my product. Give "
+            "me the complete picture of what's available where."
+        ),
+        "scoring_keywords": {
+            "accuracy": [["skill", "skills"],
+                         ["hook", "hooks"],
+                         ["plugin", "plugins"],
+                         ["mcp", "mcp server", "mcp connector"],
+                         ["project", "projects"],
+                         ["claude.md", "CLAUDE.md"]],
+            "completeness": [["subagent", "subagents", "agent tool"],
+                             ["background", "/loop", "cron"],
+                             ["zip", "zip upload", "zip file"],
+                             ["table", "matrix", "comparison"]],
+            "deprecated_patterns": [],
+        },
+    },
+
+    # 8.9: API vs Code code execution differences
+    {
+        "id": "8.9",
+        "category": "Cross-Platform Awareness",
+        "prompt": (
+            "I'm building an API integration and I want Claude to run Python "
+            "code to analyze data. I know about the code execution tool in the "
+            "API. But I also have developers who use Claude Code directly — do "
+            "they get the same code execution capabilities, or is it different?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["code_execution", "code execution", "code sandbox"],
+                         ["api", "messages api"],
+                         ["claude code", "cli"],
+                         ["bash", "terminal", "shell"]],
+            "completeness": [["sandbox", "sandboxed", "container", "isolated"],
+                             ["python", "javascript"],
+                             ["filesystem", "file system", "local files"],
+                             ["programmatic tool calling", "ptc", "programmatic"]],
+            "deprecated_patterns": [],
+        },
+    },
+
+    # 8.10: Claude.ai user wanting agent workflows → should learn about Code
+    {
+        "id": "8.10",
+        "category": "Cross-Platform Awareness",
+        "prompt": (
+            "I'm on Claude.ai and I want to build a multi-step workflow where "
+            "Claude reviews code, runs tests, and then creates a PR. Each step "
+            "needs different instructions. Is this possible on Claude.ai, or "
+            "do I need something else?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["claude code", "cli"],
+                         ["subagent", "subagents", "agent tool"],
+                         ["agent team", "agent teams"],
+                         ["not on claude.ai", "not available on claude.ai",
+                          "claude.ai doesn't", "claude.ai does not",
+                          "not supported on claude.ai"]],
+            "completeness": [["hook", "hooks"],
+                             ["background", "background task"],
+                             ["agent sdk", "sdk"],
+                             ["api", "orchestrat"]],
+            "deprecated_patterns": ["claude.ai supports subagents",
+                                    "claude.ai has agent teams",
+                                    "multi-step workflows on claude.ai"],
+        },
+    },
 ]
 
 
