@@ -966,6 +966,290 @@ TESTS = [
                                     "multi-step workflows on claude.ai"],
         },
     },
+
+    # ================================================================
+    # Category 9: Conversational Platform Users
+    # Tests reflecting what real Claude.ai/Desktop/CoWork users actually
+    # ask — based on UK SMB task patterns and common feature discovery.
+    # ================================================================
+
+    # 9.1: Document upload capacity — tender/contract processing
+    {
+        "id": "9.1",
+        "category": "Conversational Platform Users",
+        "prompt": (
+            "I've got a 95-page tender document as a PDF that I need to summarise "
+            "for a bid/no-bid decision by tomorrow. Can I just upload the whole "
+            "thing to Claude, or do I need to split it up somehow?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["100 page", "100 pages", "100-page", "100pg"],
+                         ["32mb", "32 mb"],
+                         ["pdf", "document"],
+                         ["upload", "attach", "send"],
+                         ["single pass", "one go", "whole thing", "entire document"]],
+            "completeness": [["1m", "1 million", "context", "context window"],
+                             ["structured", "summary", "extract"],
+                             ["files api", "file_id"]],
+            "deprecated_patterns": ["split it up", "chunk", "too large for claude",
+                                    "cannot process pdfs", "text only"],
+        },
+    },
+
+    # 9.2: Data privacy — pasting contracts into Claude
+    {
+        "id": "9.2",
+        "category": "Conversational Platform Users",
+        "prompt": (
+            "My boss wants me to use Claude to review a supplier contract, but "
+            "I'm worried about data privacy. Is it safe to paste confidential "
+            "contract text into Claude? Does Anthropic train on my conversations?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["free", "free tier", "free plan"],
+                         ["train", "training", "train on"],
+                         ["pro", "team", "enterprise", "paid"],
+                         ["not used for training", "don't train", "doesn't train",
+                          "not train", "opted out"]],
+            "completeness": [["project", "projects"],
+                             ["redact", "anonymise", "anonymize", "remove names"],
+                             ["api", "enterprise"]],
+            "deprecated_patterns": ["completely safe to paste anything",
+                                    "anthropic never uses any data",
+                                    "no privacy concerns at all"],
+        },
+    },
+
+    # 9.3: Web search capability discovery
+    {
+        "id": "9.3",
+        "category": "Conversational Platform Users",
+        "prompt": (
+            "Can Claude search the internet? I need to check current building "
+            "regulations and I'm not sure if Claude's information is up to date. "
+            "How do I get it to look things up online?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["web search", "search the web", "internet search"],
+                         ["tool", "built-in tool", "enable"],
+                         ["training cutoff", "cutoff", "training data", "knowledge cutoff"],
+                         ["web_search", "search tool"]],
+            "completeness": [["verify", "verification", "check", "double-check"],
+                             ["web fetch", "fetch"],
+                             ["claude.ai", "available on"]],
+            "deprecated_patterns": ["claude cannot search the internet",
+                                    "no internet access at all",
+                                    "claude has no web search"],
+        },
+    },
+
+    # 9.4: Image/vision capability discovery
+    {
+        "id": "9.4",
+        "category": "Conversational Platform Users",
+        "prompt": (
+            "I took photos of a whiteboard from our project planning session. "
+            "Can Claude read the handwriting and turn it into proper notes? "
+            "What about photos of site drawings or floor plans?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["image", "images", "photo", "photos"],
+                         ["vision", "analyze", "analyse", "read"],
+                         ["jpeg", "png", "upload"],
+                         ["all models", "natively", "built-in"]],
+            "completeness": [["handwriting", "ocr", "text extraction"],
+                             ["accuracy", "verify", "review"],
+                             ["multiple", "multi-image"]],
+            "deprecated_patterns": ["claude cannot analyze images", "text only",
+                                    "no vision support", "cannot read images"],
+        },
+    },
+
+    # 9.5: Memory and Projects — persistence across conversations
+    {
+        "id": "9.5",
+        "category": "Conversational Platform Users",
+        "prompt": (
+            "Every time I start a new chat with Claude, I have to re-explain "
+            "my company, what we do, and our writing style. It's tedious. "
+            "Is there a way to make Claude remember all this automatically?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["project", "projects"],
+                         ["persistent", "persist", "remember", "retain"],
+                         ["context", "knowledge base", "instructions"],
+                         ["upload", "add documents", "add files"]],
+            "completeness": [["claude.ai", "web"],
+                             ["desktop", "claude desktop"],
+                             ["claude code", "claude.md", "CLAUDE.md"],
+                             ["custom instructions", "system prompt", "project instructions"]],
+            "deprecated_patterns": ["no way to persist", "claude cannot remember",
+                                    "start fresh every time"],
+        },
+    },
+
+    # 9.6: Document generation — PowerPoint/Excel/Word
+    {
+        "id": "9.6",
+        "category": "Conversational Platform Users",
+        "prompt": (
+            "I need to create a PowerPoint presentation for a client pitch and "
+            "an Excel spreadsheet with project costings. Can Claude actually "
+            "generate these file types, or can it only do text?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["pptx", "powerpoint", "presentation"],
+                         ["xlsx", "excel", "spreadsheet"],
+                         ["docx", "word", "document"],
+                         ["generate", "create", "produce"]],
+            "completeness": [["code execution", "sandbox"],
+                             ["skill", "agent skill", "document generation"],
+                             ["pdf", "pdf generation"]],
+            "deprecated_patterns": ["claude can only generate text",
+                                    "cannot create files", "text only output"],
+        },
+    },
+
+    # 9.7: Platform choice for non-developer
+    {
+        "id": "9.7",
+        "category": "Conversational Platform Users",
+        "prompt": (
+            "I'm not a developer — I work in operations at a construction firm. "
+            "I've heard of Claude.ai, Claude Desktop, and Claude Code. Which one "
+            "should I use? I mainly need help with emails, summarising documents, "
+            "and creating reports."
+        ),
+        "scoring_keywords": {
+            "accuracy": [["claude.ai", "web"],
+                         ["desktop", "claude desktop"],
+                         ["claude code", "developer", "terminal", "cli"],
+                         ["project", "projects"]],
+            "completeness": [["pdf", "document", "upload"],
+                             ["skill", "skills"],
+                             ["mcp", "connector", "integration"],
+                             ["non-technical", "no coding", "browser"]],
+            "deprecated_patterns": ["must use claude code", "need to use the api",
+                                    "all platforms are the same"],
+        },
+    },
+
+    # 9.8: Limitation — fine-tuning not available
+    {
+        "id": "9.8",
+        "category": "Conversational Platform Users",
+        "prompt": (
+            "We want Claude to learn our company's specific terminology and always "
+            "follow our house style. Can we fine-tune Claude on our company data? "
+            "What's the best way to customise it for our needs?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["no fine-tuning", "not available", "does not offer",
+                          "cannot fine-tune", "doesn't offer fine-tuning", "no fine tuning"],
+                         ["system prompt", "system prompts"],
+                         ["project", "projects"],
+                         ["skill", "skills"]],
+            "completeness": [["claude.md", "CLAUDE.md"],
+                             ["custom instructions", "instructions"],
+                             ["prompt caching", "caching"]],
+            "deprecated_patterns": ["fine-tuning is available", "you can fine-tune claude",
+                                    "submit training data"],
+        },
+    },
+
+    # 9.9: Free tier data training risk
+    {
+        "id": "9.9",
+        "category": "Conversational Platform Users",
+        "prompt": (
+            "Our office admin has been using the free version of Claude for "
+            "drafting client emails with real names and project details. Should "
+            "I be worried about this? What's the risk?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["free", "free tier", "free plan", "free version"],
+                         ["train", "training", "used for training", "train on data"],
+                         ["personal data", "client data", "names", "gdpr"],
+                         ["paid", "pro", "team", "enterprise", "upgrade"]],
+            "completeness": [["anonymise", "anonymize", "redact", "remove"],
+                             ["policy", "privacy", "data protection"],
+                             ["risk", "breach", "concern"]],
+            "deprecated_patterns": ["free tier is completely safe for all data",
+                                    "no risk whatsoever",
+                                    "anthropic never trains on anything"],
+        },
+    },
+
+    # 9.10: Workflow automation discovery
+    {
+        "id": "9.10",
+        "category": "Conversational Platform Users",
+        "prompt": (
+            "Every Monday I spend two hours extracting data from invoices, "
+            "updating a spreadsheet, and sending a summary email to my manager. "
+            "Could Claude automate any of this? What are my options?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["claude code", "code"],
+                         ["mcp", "integration", "connector"],
+                         ["skill", "skills", "workflow"],
+                         ["extract", "data extraction"]],
+            "completeness": [["hook", "hooks", "automation"],
+                             ["agent", "agent sdk", "subagent"],
+                             ["/loop", "recurring", "schedule"],
+                             ["api", "build", "programmatic"]],
+            "deprecated_patterns": ["claude cannot automate workflows",
+                                    "not possible to automate"],
+        },
+    },
+
+    # 9.11: Broad feature discovery — "what can Claude do"
+    {
+        "id": "9.11",
+        "category": "Conversational Platform Users",
+        "prompt": (
+            "I just got a Claude Pro subscription. My manager said to 'find ways "
+            "to use AI to save time.' But honestly I don't really know what Claude "
+            "can do beyond basic chat. What are the main things it can help with?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["image", "vision", "photo", "analyse image"],
+                         ["pdf", "document", "upload"],
+                         ["web search", "search the web", "internet"],
+                         ["project", "projects"]],
+            "completeness": [["code", "code execution", "programming"],
+                             ["structured", "json", "data"],
+                             ["skill", "skills", "extend"],
+                             ["mcp", "integration", "connect"]],
+            "deprecated_patterns": ["claude can only chat", "text only",
+                                    "basic chatbot"],
+        },
+    },
+
+    # 9.12: Limitation — embeddings not available
+    {
+        "id": "9.12",
+        "category": "Conversational Platform Users",
+        "prompt": (
+            "I want to build a search system over our 500 company documents so "
+            "staff can ask questions and get answers. Can Claude create embeddings "
+            "for our documents, or do I need something else for that part?"
+        ),
+        "scoring_keywords": {
+            "accuracy": [["no embedding", "not offer embedding", "doesn't offer embedding",
+                          "does not provide embedding", "no embeddings"],
+                         ["voyage", "separate embedding", "embedding model"],
+                         ["rag", "retrieval", "vector"],
+                         ["1m", "1 million", "context window", "long context"]],
+            "completeness": [["files api", "upload"],
+                             ["search", "web search"],
+                             ["batch", "batch api", "batch processing"],
+                             ["prompt caching", "caching"]],
+            "deprecated_patterns": ["claude can generate embeddings",
+                                    "use claude for embeddings",
+                                    "claude has a built-in embedding endpoint"],
+        },
+    },
 ]
 
 

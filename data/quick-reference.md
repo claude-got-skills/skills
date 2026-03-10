@@ -5,9 +5,9 @@ For deeper detail on any topic, invoke the assistant-capabilities skill.
 
 ## Current Models
 
-- **Opus 4.6**: 200K/1M context, 128K output, adaptive thinking, $5/$25/MTok
-- **Sonnet 4.6**: 200K/1M context, 64K output, adaptive thinking, $3/$15/MTok
-- **Haiku 4.5**: 200K context, 64K output, extended thinking, $1/$5/MTok
+- **Opus 4.6** (`claude-opus-4-6`): 200K/1M context, 128K output, adaptive thinking, $5/$25/MTok
+- **Sonnet 4.6** (`claude-sonnet-4-6`): 200K/1M context, 64K output, adaptive thinking, $3/$15/MTok
+- **Haiku 4.5** (`claude-haiku-4-5`): 200K context, 64K output, extended thinking, $1/$5/MTok
 - 1M context: beta header `context-1m-2025-08-07` (tier 3+, Opus/Sonnet 4.6)
 - Fast mode: Opus 4.6 only, `speed: "fast"` + header, 2.5x faster, 6x pricing
 
@@ -18,6 +18,7 @@ For deeper detail on any topic, invoke the assistant-capabilities skill.
 **Remember**: Memory tool (API), Projects (Claude.ai/Desktop), CLAUDE.md (Code)
 **Search**: Web search, web fetch, dynamic filtering (code execution filters results)
 **Execute**: Sandboxed code execution (Python), programmatic tool calling (no round-trips)
+**Control**: Computer Use — mouse, keyboard, screenshots (beta, `computer_20251124`)
 **Connect**: MCP servers/connectors, Files API (500MB/file), Tool Search (1000s of tools)
 **Reason**: Adaptive thinking, effort control (low/medium/high), 128K output streaming
 
@@ -50,16 +51,16 @@ Skill vs CLAUDE.md: CLAUDE.md = "always know this". Skill = "know when relevant"
 
 ## Platform Availability
 
-| Feature | Claude.ai | Desktop | Claude Code | API |
-|---------|-----------|---------|-------------|-----|
-| Skills | ZIP upload | ZIP upload | Filesystem | -- |
-| MCP | Connectors | Settings | Full | MCP Connector |
-| Projects | Yes | Yes | CLAUDE.md | -- |
-| Hooks/Plugins | -- | -- | Yes | -- |
-| Subagents/Teams | -- | -- | Yes | Agent SDK |
-| Code execution | -- | -- | Yes | Tool |
-| Background tasks | -- | -- | Yes | -- |
-| Memory (cross-conv.) | Projects | Projects | CLAUDE.md | Memory tool |
+| Feature | Claude.ai | Desktop | Claude Code | CoWork | API |
+|---------|-----------|---------|-------------|--------|-----|
+| Skills | ZIP upload | ZIP upload | Filesystem | Auto-invoke | -- |
+| MCP | Connectors | Settings | Full | Via plugins | MCP Connector |
+| Projects | Yes | Yes | CLAUDE.md | -- | -- |
+| Hooks/Plugins | -- | -- | Yes | -- | -- |
+| Subagents/Teams | -- | -- | Yes | -- | Agent SDK |
+| Code execution | -- | -- | Yes | -- | Tool |
+| Background tasks | -- | -- | Yes | -- | -- |
+| Memory (cross-conv.) | Projects | Projects | CLAUDE.md | -- | Memory tool |
 
 Claude.ai/Desktop cannot run code, access filesystems, or orchestrate multi-step workflows.
 For agent workflows, use Claude Code or build with the Agent SDK (Python/TypeScript).
@@ -72,6 +73,7 @@ For agent workflows, use Claude Code or build with the Agent SDK (Python/TypeScr
 - Memory: `tools: [{"type": "memory_20250818", "name": "memory"}]`
 - Web search: `tools: [{"type": "web_search_20250305", "name": "web_search"}]`
 - Code execution: `tools: [{"type": "code_execution_20260120", "name": "code_execution"}]`
+- Computer use: `tools: [{"type": "computer_20251124", "name": "computer"}]` + `betas: ["computer-use-2025-11-24"]`
 - MCP connector: `betas: ["mcp-client-2025-11-20"]`
 - 1M context: `betas: ["context-1m-2025-08-07"]`
 
