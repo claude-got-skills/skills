@@ -28,7 +28,7 @@ Reference files provide deeper detail with code examples for API features, tool 
 
 **Claude Code:**
 ```bash
-npx skills add claude-got-skills/skills@claude-capabilities
+npx skills add claude-got-skills/skills@assistant-capabilities
 ```
 
 **Claude.ai / Claude Desktop:**
@@ -36,19 +36,19 @@ npx skills add claude-got-skills/skills@claude-capabilities
 2. Go to Settings > Capabilities > Skills
 3. Click "Upload skill" and select the ZIP
 
-## Eval results (v2.0.0)
+## Eval results (v2.1.0)
 
-Evaluated against a baseline (no skill) across 24 test prompts in 7 categories using Haiku 4.5 (no web search).
+Evaluated against a baseline (no skill) across 33 test prompts in 7 categories using Haiku 4.5 (no web search). Accuracy scores shown (0–7 scale).
 
-| Category | Control | Treatment | Lift |
-|----------|---------|-----------|------|
-| Architecture Decisions | 1.33 | 3.67 | **+176%** |
-| Can Claude Do X | 1.67 | 5.00 | **+200%** |
-| Implementation Guidance | 3.00 | 5.67 | **+89%** |
-| Model Selection | 0.00 | 6.00 | **+∞** |
-| Extension Awareness | 2.29 | 4.00 | **+75%** |
-| Hallucination Detection | 1.75 | 3.00 | **+71%** |
-| **Negative (regression check)** | **4.67** | **4.67** | **0% (no regression)** |
+| Category | Tests | Control | Treatment | Lift |
+|----------|-------|---------|-----------|------|
+| Architecture Decisions | 3 | 1.33 | 3.00 | **+125%** |
+| Can Claude Do X | 5 | 2.20 | 4.20 | **+91%** |
+| Implementation Guidance | 8 | 2.00 | 4.75 | **+138%** |
+| Model Selection | 1 | 1.00 | 7.00 | **+600%** |
+| Extension Awareness | 8 | 1.88 | 4.25 | **+126%** |
+| Hallucination Detection | 5 | 1.00 | 3.40 | **+240%** |
+| **Negative (regression check)** | **3** | **5.33** | **5.33** | **0% (no regression)** |
 
 ## Structure
 

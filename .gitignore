@@ -9,8 +9,16 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Eval raw results (keep reports, gitignore raw JSON)
+# Eval raw results and reports (keep scripts only)
 evals/eval-results-*.json
+evals/eval-report-*.md
+evals/v1.4.0-eval-report.md
+
+# Development artifacts (archived to private repo)
+docs/
+launchd/
+pipeline/
+monitoring/
 
 # Firecrawl scrape cache
 .firecrawl/

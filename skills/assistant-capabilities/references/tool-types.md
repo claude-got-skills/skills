@@ -378,8 +378,8 @@ Agent SDK contexts.
 Filesystem read/write restricted to working directory. Network access filtered
 by domain allowlist via proxy.
 
-**Configuration:** `dangerouslyDisableSandbox` parameter available for
-incompatible commands (requires explicit permission).
+**Configuration:** Sandbox can be configured via settings for specific needs
+(requires explicit permission). See Claude Code docs for sandbox settings.
 
 ---
 

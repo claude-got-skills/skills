@@ -268,7 +268,7 @@ tool parameter extraction. Well-formed JSON parsers handle all valid escaping.
 ### From Sonnet 4.5 to Opus 4.6
 
 All Opus 4.5 migration steps above, plus:
-1. Note `effort: "max"` is now available (Opus 4.6 exclusive)
+1. Effort parameter simplified to low/medium/high (`max` removed in v2.1.72)
 2. Programmatic tool calling now GA on Opus 4.6 — no header required
 3. Context awareness system warnings not present on Opus 4.6
 4. Budget may increase significantly (~1.7x input cost vs Sonnet 4.5)
@@ -287,7 +287,7 @@ All Opus 4.5 migration steps above, plus:
 | Web research with filtering | Sonnet 4.6 | Dynamic filtering + free code execution |
 | Document generation | Sonnet 4.6 | Good balance for skills-based work |
 | Subagent tasks | Haiku 4.5 | Cost-effective for delegated analysis |
-| Maximum quality | Opus 4.6 (effort: max) | Highest capability + maximum effort |
+| Maximum quality | Opus 4.6 (effort: high) | Highest capability + maximum effort |
 
 ### Cost Optimisation Patterns
 
