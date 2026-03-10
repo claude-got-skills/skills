@@ -36,19 +36,20 @@ npx skills add claude-got-skills/skills@assistant-capabilities
 2. Go to Settings > Capabilities > Skills
 3. Click "Upload skill" and select the ZIP
 
-## Eval results (v2.1.0)
+## Eval results (v2.2.0)
 
-Evaluated against a baseline (no skill) across 33 test prompts in 7 categories using Haiku 4.5 (no web search). Accuracy scores shown (0–7 scale).
+Evaluated against a baseline (no skill) across 43 test prompts in 8 categories using Haiku 4.5 (no web search). Accuracy scores shown (0–7 scale).
 
 | Category | Tests | Control | Treatment | Lift |
 |----------|-------|---------|-----------|------|
-| Architecture Decisions | 3 | 1.33 | 3.00 | **+125%** |
-| Can Claude Do X | 5 | 2.20 | 4.20 | **+91%** |
-| Implementation Guidance | 8 | 2.00 | 4.75 | **+138%** |
-| Model Selection | 1 | 1.00 | 7.00 | **+600%** |
-| Extension Awareness | 8 | 1.88 | 4.25 | **+126%** |
-| Hallucination Detection | 5 | 1.00 | 3.40 | **+240%** |
-| **Negative (regression check)** | **3** | **5.33** | **5.33** | **0% (no regression)** |
+| Architecture Decisions | 3 | 1.67 | 4.33 | **+159%** |
+| Can Claude Do X | 5 | 2.00 | 4.60 | **+130%** |
+| Implementation Guidance | 8 | 2.50 | 4.50 | **+80%** |
+| Model Selection | 1 | 1.00 | 5.00 | **+400%** |
+| Extension Awareness | 8 | 2.00 | 4.50 | **+125%** |
+| Hallucination Detection | 5 | 1.80 | 3.20 | **+78%** |
+| Cross-Platform Awareness | 10 | 1.90 | 3.90 | **+105%** |
+| **Negative (regression check)** | **3** | **5.00** | **5.00** | **0% (no regression)** |
 
 ## Structure
 
@@ -56,8 +57,8 @@ Evaluated against a baseline (no skill) across 33 test prompts in 7 categories u
 ├── .claude-plugin/
 │   └── marketplace.json              # Skill discovery for npx skills add
 ├── skills/
-│   └── claude-capabilities/
-│       ├── SKILL.md                  # Always-loaded skill (~250 lines)
+│   └── assistant-capabilities/
+│       ├── SKILL.md                  # Always-loaded skill (~270 lines)
 │       └── references/
 │           ├── agent-capabilities.md # Agent SDK, subagents, hooks, plugins
 │           ├── api-features.md       # API params, vision, PDFs, streaming, caching
@@ -68,11 +69,7 @@ Evaluated against a baseline (no skill) across 33 test prompts in 7 categories u
 │   ├── eval_runner.py                # Control/treatment API eval with LLM judge
 │   ├── browser_eval.sh              # Claude.ai A/B testing via agent-browser
 │   └── browser_eval_report.py       # Report generator for browser eval
-├── pipeline/                         # Freshness monitoring (scrape, diff, notify)
-├── launchd/                          # Schedule for freshness pipeline
-├── docs/                             # Design docs, specs, analysis
 ├── knowledge-base/                   # Source docs from Anthropic documentation
-└── monitoring/                       # Legacy monitoring setup
 ```
 
 ## License

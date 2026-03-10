@@ -56,10 +56,13 @@ See `references/api-features.md` for configuration details and code examples.
 ## Context & Memory
 
 1M context (beta, Opus 4.6 and Sonnet 4.6, header `context-1m-2025-08-07`). Memory tool
-(GA, cross-conversation persistence — client-side storage required). Compaction API and
-context editing for infinite conversations. Prompt caching (5-min and 1-hour) plus
-automatic caching (`cache_control: {"type": "ephemeral"}` at request level, system
-auto-manages cache points — works alongside block-level caching).
+(GA, API-only — not built into Claude.ai or Desktop). For cross-conversation persistence:
+Claude.ai/Desktop use **Projects** (persistent context per project); Claude Code uses
+**CLAUDE.md** (always-loaded) + **skills** (on-demand knowledge). The Memory tool requires
+client-side storage, ideal for custom apps managing their own persistence.
+Compaction API and context editing for infinite conversations. Prompt caching (5-min and
+1-hour) plus automatic caching (`cache_control: {"type": "ephemeral"}` at request level,
+system auto-manages cache points — works alongside block-level caching).
 See `references/api-features.md` for headers, pricing, and code examples.
 
 ## Tools & Integration
@@ -104,6 +107,7 @@ Claude is available across multiple platforms. Each has different extension supp
 | Plugins/Hooks | -- | -- | Yes | -- |
 | Subagents/Teams | -- | -- | Yes | -- |
 | Background/Loop | -- | -- | Yes | -- |
+| Cross-conv. memory | Projects | Projects | CLAUDE.md + skills | -- |
 
 **Claude.ai/Desktop**: Install skills as ZIP via Settings > Capabilities > Skills.
 Auto-invocation triggers from natural language (no slash commands). Use Projects for
@@ -118,18 +122,27 @@ See `references/claude-code-specifics.md` for details.
 **CoWork**: Browser automation environment. Skills auto-invoke or via plugin slash
 commands. MCP available via plugins. No hooks, subagents, or teams.
 
+**Upgrading from Claude.ai/Desktop**: Multi-step agent workflows (code review, test
+execution, PR creation), subagents, agent teams, hooks, and background tasks require
+**Claude Code**. Claude.ai and Desktop do not support code execution, filesystem access,
+or multi-step orchestration. For programmatic orchestration without Claude Code, use the
+**Agent SDK** (Python/TypeScript) or build custom orchestration via the **Messages API**
+with tool use.
+
 **API** (direct, Bedrock, Vertex AI, Azure): All model capabilities available.
 Bedrock/Vertex may lag on newest features. Model IDs differ by provider.
 See `references/model-specifics.md` for platform availability matrix.
 
 ## Agent Capabilities
 
-**Agent SDK** (Python, TypeScript): `query()` for one-off tasks (now supports hooks
-and custom tools), `ClaudeSDKClient` for persistent conversations, custom `Transport`
-for remote connections. **Subagents**: isolated context windows via `Agent` tool
-(renamed from `Task` in v2.1.63). **Hooks**: lifecycle events including shell and
-HTTP hooks (`type: "http"`). **Plugins**: bundle skills, hooks, MCP, and settings.
-**MCP Apps** (beta): interactive HTML UIs in MCP hosts.
+**Agent SDK** (Python, TypeScript — **Claude Code and programmatic use only**):
+`query()` for one-off tasks (now supports hooks and custom tools), `ClaudeSDKClient`
+for persistent conversations, custom `Transport` for remote connections.
+**Subagents** (Claude Code only): isolated context windows via `Agent` tool
+(renamed from `Task` in v2.1.63). **Hooks** (Claude Code only): lifecycle events
+including shell and HTTP hooks (`type: "http"`). **Plugins** (Claude Code only):
+bundle skills, hooks, MCP, and settings. **MCP Apps** (beta): interactive HTML UIs
+in MCP hosts.
 See `references/agent-capabilities.md` for SDK API, hook config, and plugin structure.
 
 ## Choosing the Right Extension Pattern
