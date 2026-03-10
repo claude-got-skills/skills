@@ -1,6 +1,17 @@
 {
   "name": "claude-got-skills",
-  "description": "Skills for Claude Code — accurate capabilities knowledge, extension patterns, and more.",
+  "description": "Always-on Claude capabilities awareness — ensures Claude knows what it can do, how features compose, and which platform supports what.",
+  "owner": {
+    "name": "claude-got-skills"
+  },
+  "plugins": [
+    {
+      "name": "claude-got-skills",
+      "description": "Always-on Claude capabilities awareness with SessionStart hook injection and on-demand skill for deep queries.",
+      "version": "2.3.0",
+      "source": "./"
+    }
+  ],
   "skills": [
     {
       "name": "assistant-capabilities",

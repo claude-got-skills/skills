@@ -26,12 +26,13 @@ Reference files provide deeper detail with code examples for API features, tool 
 
 ## Installation
 
-**Claude Code (as plugin — recommended, always-on):**
-```bash
-npx skills add claude-got-skills/skills
+**Claude Code (full plugin — recommended, always-on capabilities + on-demand skill):**
+```
+/plugin marketplace add claude-got-skills/skills
+/plugin install claude-got-skills@claude-got-skills
 ```
 
-**Claude Code (skill only — on-demand):**
+**Claude Code (skill only — on-demand, no SessionStart hook):**
 ```bash
 npx skills add claude-got-skills/skills@assistant-capabilities
 ```
@@ -86,7 +87,7 @@ Evaluated against a baseline (no skill) across 43 test prompts in 8 categories u
 
 ### Two-tier architecture
 
-- **Tier 1 (always-on)**: `data/quick-reference.md` (~90 lines, ~2K tokens) injected via SessionStart hook into every session. Covers current models, capability composition patterns, platform availability, and key API parameters.
+- **Tier 1 (always-on)**: `data/quick-reference.md` (~90 lines, ~1.2K tokens) injected via SessionStart hook into every session. Covers current models, capability composition patterns, platform availability, and key API parameters.
 - **Tier 2 (on-demand)**: Full `SKILL.md` + 5 reference files (~2,700 lines) loaded by Claude when deeper detail is needed — API examples, agent SDK, tool configurations, migration guides.
 
 ## License
