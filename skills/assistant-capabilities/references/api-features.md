@@ -102,12 +102,14 @@ response = client.messages.create(
 )
 ```
 
-| Level | Behaviour | Opus 4.6 |
-|-------|-----------|----------|
-| low | Minimal thinking, fast responses | Yes |
-| medium | Balanced (default) | Yes |
-| high | Thorough reasoning | Yes |
-| max | Maximum capability | Opus 4.6 only |
+| Level | Behaviour |
+|-------|-----------|
+| low | Minimal thinking, fast responses |
+| medium | Balanced (default) |
+| high | Thorough reasoning |
+
+Note: `max` was removed in Claude Code v2.1.72 (simplified to 3 levels).
+Use `/effort auto` to reset to default.
 
 Combine with `thinking: {type: "adaptive"}` on Opus 4.6 for fine-grained
 control. On other models, `effort` works independently.

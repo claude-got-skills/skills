@@ -4,7 +4,8 @@ Claude Code-specific features: agent teams, browser integration, CLI
 reference, IDE extensions, skills system, and plugin development. These capabilities
 are distinct from API-level features and only apply in Claude Code contexts.
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-03-10
+**Covers through:** v2.1.72
 
 ## Table of Contents
 
@@ -95,6 +96,7 @@ background subagents (previously restricted).
 
 `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` — disable all background task
 functionality (set in settings.json or environment).
+`CLAUDE_CODE_DISABLE_CRON` — stop scheduled cron jobs mid-session (v2.1.72).
 
 ---
 
@@ -176,7 +178,7 @@ browser extension.
 - **Live debugging**: read console errors and DOM state, fix code
 - **Design verification**: build UI, open in browser to verify
 - **Web app testing**: form validation, visual regression, user flows
-- **Authenticated apps**: uses your browser login state (Google Docs, Gmail, etc.)
+- **Authenticated apps**: works with your existing browser sessions
 - **Data extraction**: pull structured data from web pages
 - **Task automation**: form filling, data entry, multi-site workflows
 - **Session recording**: record interactions as GIFs
@@ -194,7 +196,7 @@ claude --chrome
 ### Key Behaviours
 
 - Opens new tabs for browser tasks
-- Shares your browser login state
+- Uses your existing browser profile
 - Actions run in visible Chrome window (real-time)
 - Pauses on login pages or CAPTCHAs for manual handling
 - Works with Google Chrome and Microsoft Edge (not Brave, Arc, etc.)

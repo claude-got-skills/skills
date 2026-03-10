@@ -247,6 +247,13 @@ Run the test suite and report results. Focus on:
 | `hooks` | object | Agent-specific hooks |
 | `memory` | object | Persistent memory config (user/project/local) |
 
+### Agent Tool Parameters (v2.1.72+)
+
+The Agent tool now supports a `model` parameter for per-invocation model
+overrides (restored in v2.1.72). Also: `ExitWorktree` tool leaves an
+`EnterWorktree` session, and `/plan` accepts an optional description argument
+(e.g., `/plan fix the auth bug`). Team agents inherit the leader's model.
+
 ### Subagent Patterns
 
 - **Isolate heavy operations**: push test runs, log analysis to subagents to
@@ -295,40 +302,17 @@ Lifecycle automation at key events. Four hook types:
 
 ### Hook Configuration
 
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash /path/to/validate.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Review the command output for errors or security issues"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
+Hooks are configured in settings.json with a matcher (regex on tool name) and
+one or more hook actions. See Claude Code docs for full configuration reference.
 
-### Hook Input/Output
+Example use cases:
+- **PreToolUse**: Validate file edits before they happen (lint, format check)
+- **PostToolUse**: Log tool usage, notify on completions
+- **Prompt hooks**: LLM-based content review and policy enforcement
+- **HTTP hooks**: Send events to external services (CI, monitoring)
 
-- **Input**: JSON via stdin with session_id, cwd, hook_event_name, tool data
-- **Output**: exit code 0 (allow), exit code 2 (block), stderr for feedback
-- Structured JSON output supported for fine-grained control
+Hooks receive JSON input (session_id, cwd, event, tool data) and return
+exit code 0 (allow) or 2 (block) with optional feedback via stderr.
 
 ### Configuration Scopes
 

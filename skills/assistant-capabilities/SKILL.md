@@ -9,9 +9,9 @@ Comprehensive Claude capabilities reference. Consult when making architectural
 decisions, recommending approaches, or answering questions about what Claude
 can do across any platform, to ensure accuracy.
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-03-10
 **Covers models through:** Claude Sonnet 4.6
-**Covers Claude Code through:** v2.1.71+
+**Covers Claude Code through:** v2.1.72+
 
 ## Current Models
 
@@ -47,7 +47,7 @@ system prompts, skills, or Projects (on Claude.ai/Desktop).
 ## Thinking & Reasoning
 
 Adaptive thinking (Opus 4.6 and Sonnet 4.6, `thinking: {type: "adaptive"}`), effort
-parameter (GA, all models, `"max"` Opus 4.6 only), 128K output tokens (Opus 4.6,
+parameter (GA, all models, `low`/`medium`/`high`), 128K output tokens (Opus 4.6,
 streaming recommended). `budget_tokens` deprecated on Opus 4.6 — still works on legacy
 models. Fast mode (beta, Opus 4.6, `speed: "fast"` + header `fast-mode-2026-02-01`,
 2.5x faster output, 6x pricing).
@@ -179,7 +179,7 @@ API calls when you control the orchestration.
 real-time UX. Programmatic tool calling (GA) to reduce round-trips.
 
 **Model tiering**: Haiku for high-volume classification, Sonnet for balanced tasks,
-Opus for complex reasoning. Add `effort: "low"` for simple, `"max"` for critical steps.
+Opus for complex reasoning. Add `effort: "low"` for simple, `"high"` for critical steps.
 
 ### Feature Combination Patterns
 
@@ -221,7 +221,7 @@ Common parameters inline for all platforms. For detailed examples, see reference
 **Adaptive thinking:** `thinking: {"type": "adaptive"}` (Opus 4.6, Sonnet 4.6)
 **Extended thinking:** `thinking: {"type": "enabled", "budget_tokens": N}` (Haiku 4.5, legacy)
 **Structured outputs:** `output_config: {"format": {"type": "json_schema", "schema": {...}}}`
-**Effort:** `effort: "low" | "medium" | "high" | "max"` (max = Opus 4.6 only)
+**Effort:** `effort: "low" | "medium" | "high"` (simplified in v2.1.72, `max` removed)
 **Temperature:** `temperature: 0.0-1.0` (default 1.0; lower = more deterministic)
 **Max tokens:** `max_tokens: N` (required; model max varies — see Current Models)
 **Streaming:** `stream: true` (SSE response format)

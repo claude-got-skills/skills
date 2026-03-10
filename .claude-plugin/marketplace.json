@@ -3,8 +3,8 @@
   "description": "Skills for Claude Code — accurate capabilities knowledge, extension patterns, and more.",
   "skills": [
     {
-      "name": "claude-capabilities",
-      "path": "skills/claude-capabilities",
+      "name": "assistant-capabilities",
+      "path": "skills/assistant-capabilities",
       "description": "Comprehensive Claude capabilities reference — current models, vision, PDFs, API features, extension patterns, platform availability (Claude.ai, Desktop, Code, CoWork), and breaking changes."
     }
   ]
