@@ -271,7 +271,7 @@ def run_check(
             )
         elif not report.has_errors:
             # Only send "no changes" if there are also no errors
-            notify_no_changes()
+            notify_no_changes(len(sources))
 
     return report
 
