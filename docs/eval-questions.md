@@ -1,6 +1,6 @@
 # Eval Test Questions
 
-55 tests across 9 categories. Review and provide feedback on which to keep, change, or remove.
+65 tests across 10 categories (v2.4.0). Review and provide feedback on which to keep, change, or remove.
 
 ## Category 1: Architecture Decisions (3 tests)
 
@@ -11,7 +11,7 @@
 **1.3**: We want to add AI features to our Next.js app. Users should be able to ask questions about their data and get real-time streaming responses. What's the simplest way to integrate Claude into this?
 
 
-## Category 2: Can Claude Do X (5 tests)
+## Category 2: Can Claude Do X (7 tests)
 
 **2.1**: Can I get Claude to remember things between separate conversations? I'm building a tool where Claude helps with ongoing projects and it's frustrating that it loses context each time.
 
@@ -24,7 +24,12 @@
 **2.5**: What is Claude CoWork? Can I use my custom skills and MCP integrations there? I heard it's different from Claude.ai — what does it support?
 
 
-## Category 3: Implementation Guidance (8 tests)
+**2.6**: I heard Claude can now review my pull requests automatically. How does Code Review work? What does it check and how much does it cost?
+
+**2.7**: I'm working on my laptop but need to step away. Can I continue my Claude Code session from my phone while I'm on the bus?
+
+
+## Category 3: Implementation Guidance (9 tests)
 
 **3.1**: I'm using Claude Opus 4.6 and want to control how much 'thinking' it does on different types of requests. Some are simple lookups, others are complex analysis. How do I configure this?
 
@@ -48,7 +53,10 @@
 **4.1**: I need to choose a Claude model for my application. It needs to handle long documents (200+ pages), produce detailed analysis, and keep costs reasonable. What would you recommend?
 
 
-## Category 5: Extension Awareness (8 tests)
+**3.9**: I want to start Claude Code tasks from my terminal but have them run in the cloud so I can close my laptop. How do I set this up?
+
+
+## Category 5: Extension Awareness (9 tests)
 
 **5.1**: I write proposals for clients every week. Each one follows our standard template with an executive summary, scope section, pricing table, and terms. Can you help me write one for Acme Corp?
 
@@ -89,7 +97,10 @@
 **7.5**: I have a production system using Claude Sonnet 3.7 (claude-3-7-sonnet). A teammate says we need to migrate urgently. Is Sonnet 3.7 still available? What should we move to?
 
 
-## Category 8: Cross-Platform Awareness (10 tests)
+**5.9**: My team discusses bugs in Slack and then someone has to context-switch to fix them. Is there a way to go straight from a Slack conversation to a code fix?
+
+
+## Category 8: Cross-Platform Awareness (12 tests)
 
 **8.1**: I'm using Claude Desktop for my daily work. I need to set up automated tasks — like running linting after every file edit and monitoring a service every 5 minutes. Is any of this possible?
 
@@ -136,4 +147,44 @@
 
 **9.11**: I just got a Claude Pro subscription. My manager said to 'find ways to use AI to save time.' But honestly I don't really know what Claude can do beyond basic chat. What are the main things it can help with?
 
+**8.11**: What's the difference between Remote Control and Claude Code on the web? They both seem to let me use Claude Code from a browser.
+
+**8.12**: I use Claude Code in VS Code. My teammate prefers JetBrains. Another uses the terminal. Are we getting different features?
+
+
+## Category 9: Conversational Platform Users (12 tests)
+
+**9.1**: I've got a 95-page tender document as a PDF that I need to summarise for a bid/no-bid decision by tomorrow. Can I just upload the whole thing to Claude, or do I need to split it up somehow?
+
+**9.2**: My boss wants me to use Claude to review a supplier contract, but I'm worried about data privacy. Is it safe to paste confidential contract text into Claude? Does Anthropic train on my conversations?
+
+**9.3**: Can Claude search the internet? I need to check current building regulations and I'm not sure if Claude's information is up to date. How do I get it to look things up online?
+
+**9.4**: I took photos of a whiteboard from our project planning session. Can Claude read the handwriting and turn it into proper notes? What about photos of site drawings or floor plans?
+
+**9.5**: Every time I start a new chat with Claude, I have to re-explain my company, what we do, and our writing style. It's tedious. Is there a way to make Claude remember all this automatically?
+
+**9.6**: I need to create a PowerPoint presentation for a client pitch and an Excel spreadsheet with project costings. Can Claude actually generate these file types, or can it only do text?
+
+**9.7**: I'm not a developer — I work in operations at a construction firm. I've heard of Claude.ai, Claude Desktop, and Claude Code. Which one should I use? I mainly need help with emails, summarising documents, and creating reports.
+
+**9.8**: We want Claude to learn our company's specific terminology and always follow our house style. Can we fine-tune Claude on our company data? What's the best way to customise it for our needs?
+
+**9.9**: Our office admin has been using the free version of Claude for drafting client emails with real names and project details. Should I be worried about this? What's the risk?
+
+**9.10**: Every Monday I spend two hours extracting data from invoices, updating a spreadsheet, and sending a summary email to my manager. Could Claude automate any of this? What are my options?
+
+**9.11**: I just got a Claude Pro subscription. My manager said to 'find ways to use AI to save time.' But honestly I don't really know what Claude can do beyond basic chat. What are the main things it can help with?
+
 **9.12**: I want to build a search system over our 500 company documents so staff can ask questions and get answers. Can Claude create embeddings for our documents, or do I need something else for that part?
+
+
+## Category 10: Competitor Migration (4 tests)
+
+**10.1**: We've been using GitHub Copilot for code completion. Our CTO wants to evaluate Claude as a replacement. What can Claude do that Copilot can't, and what would we lose?
+
+**10.2**: I'm migrating from ChatGPT to Claude for our team. My colleagues keep asking about 'Code Interpreter' — does Claude have something equivalent?
+
+**10.3**: My company uses ChatGPT Teams with custom GPTs. We're considering switching to Claude. What's the equivalent of custom GPTs in the Claude ecosystem?
+
+**10.4**: We built automations with OpenAI's Assistants API (with file search and code interpreter). What's the Claude equivalent for building similar agent workflows?
