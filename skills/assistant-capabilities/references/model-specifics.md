@@ -85,23 +85,18 @@ In Claude Code / Agent SDK, use short names: `opus`, `sonnet`, `haiku`
 
 ## Pricing
 
-Pricing per million tokens (USD). Verify current rates at
-docs.anthropic.com as prices may change.
+Pricing tiers (most to least expensive): Opus > Sonnet > Haiku.
 
-| Model | Input | Output | Cached Input |
-|-------|-------|--------|-------------|
-| Opus 4.6 | $5 | $25 | $0.50 |
-| Sonnet 4.6 | $3 | $15 | $0.30 |
-| Haiku 4.5 | $1 | $5 | $0.10 |
-| Sonnet 4.5 (legacy) | $3 | $15 | $0.30 |
-| Opus 4.5 (legacy) | $15 | $75 | $1.50 |
+For current per-MTok rates, cached input pricing, and tier details:
+https://docs.anthropic.com/en/docs/about-claude/models/all-models
 
-**Additional pricing factors:**
-- 1M context (beyond 200K): 2x input, 1.5x output
-- Data residency (US-only): 1.1x multiplier
+**Pricing multipliers** (stable, useful for architecture decisions):
+- 1M context (beyond 200K): ~2x input, ~1.5x output
+- Data residency (US-only): ~1.1x multiplier
 - Batch processing: 50% discount
-- Prompt caching reads: 10% of base input price
-- Prompt caching writes: 25% premium on base input price
+- Prompt caching reads: ~10% of base input price
+- Prompt caching writes: ~25% premium on base input price
+- Fast mode (Opus 4.6): 6x standard rates
 
 ---
 

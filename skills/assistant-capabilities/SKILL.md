@@ -1,6 +1,6 @@
 ---
 name: assistant-capabilities
-description: Use when users ask about current Claude capabilities, API features, model specifications, or need guidance building with Claude. Triggers for queries about model selection, context limits, pricing, streaming, tool use, structured outputs, platform differences (Claude.ai vs Desktop vs Claude Code), extension patterns (skills vs hooks vs MCP), architectural decisions, or "what can Claude do" questions. Essential for answering capability questions where training data may be outdated, comparing Claude features, or advising on implementation approaches. Also use when users need to choose between Claude platforms, configure API parameters, enable beta features, or design agent workflows.
+description: Use when users ask about current Claude capabilities, API features, model specifications, or need guidance building with Claude. Triggers for model selection, context limits, pricing, streaming, tool use, structured outputs, platform differences (Claude.ai vs Desktop vs Claude Code vs CoWork), extension patterns (skills, hooks, MCP, plugins), Code Review, Remote Control, web/cloud sessions, Slack integration, or "what can Claude do" questions. Essential when training data may be outdated, when comparing Claude to competitors (Copilot, Cursor, ChatGPT, Windsurf), when migrating from other AI tools, or when advising on architectural decisions and agent workflows.
 ---
 
 # Claude Capabilities Awareness

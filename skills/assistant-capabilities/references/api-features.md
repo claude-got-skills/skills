@@ -622,20 +622,23 @@ responsive UIs that show tool inputs as they're generated.
 API access is tiered (1-4) based on usage history and payment. Higher tiers
 unlock higher rate limits and features (e.g., 1M context requires tier 3+).
 
+For current tier thresholds, per-model rate limits, and your current tier:
+- https://console.anthropic.com (account dashboard)
+- https://docs.anthropic.com/en/docs/about-claude/models/rate-limits
+
 ### Rate Limit Headers
 Every response includes rate limit information:
 - `anthropic-ratelimit-requests-limit` / `-remaining` / `-reset`
 - `anthropic-ratelimit-tokens-limit` / `-remaining` / `-reset`
 
 ### Handling 429 Errors
-```python
-# SDKs auto-retry 429 errors (up to 2 retries by default)
-# For manual handling, check the Retry-After header
-```
+SDKs auto-retry 429 errors (up to 2 retries by default).
+For manual handling, check the `Retry-After` header.
 
-### Key Limits
-Rate limits vary by model and tier. Opus models have lower request limits
-than Sonnet/Haiku. Check your current tier at console.anthropic.com.
+### Key Patterns
+- Opus models have lower request limits than Sonnet/Haiku
+- Rate limits are per-model, per-tier (not shared across models)
+- Fast mode has separate dedicated rate limits (`anthropic-fast-*` headers)
 
 ---
 
