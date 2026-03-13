@@ -1667,7 +1667,6 @@ Return ONLY a JSON object (keep reasoning under 15 words):
     try:
         messages = [
             {"role": "user", "content": judge_prompt},
-            {"role": "assistant", "content": "{"},
         ]
         response_obj = client.messages.create(
             model=CONFIG["judge_model"],
@@ -1675,7 +1674,7 @@ Return ONLY a JSON object (keep reasoning under 15 words):
             system=judge_system,
             messages=messages,
         )
-        judge_text = "{" + response_obj.content[0].text
+        judge_text = response_obj.content[0].text
 
         # Try direct parse first, then extract JSON from markdown
         try:
