@@ -68,12 +68,10 @@ CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 CHROME_ARGS="--disable-blink-features=AutomationControlled"
 
 ab() {
-  # Wrapper: runs agent-browser with session, using real Chrome to avoid bot detection
-  if [[ "$HEADED_MODE" == "true" ]]; then
-    agent-browser --session "$SESSION" --headed --executable-path "$CHROME_PATH" --args "$CHROME_ARGS" "$@"
-  else
-    agent-browser --session "$SESSION" --executable-path "$CHROME_PATH" --args "$CHROME_ARGS" "$@"
-  fi
+  # Wrapper: runs agent-browser with session only.
+  # --executable-path/--args are only needed on the FIRST open call (daemon start).
+  # Passing them on subsequent calls causes stdout warnings that block script flow.
+  agent-browser --session "$SESSION" "$@"
 }
 
 ab_headed() {
@@ -124,8 +122,18 @@ validate_auth() {
   fi
 
   log "Loading auth state and validating session..."
+  # Kill any stale daemon for this session before starting fresh (double close
+  # needed: first closes browser, second tears down daemon)
+  agent-browser --session "$SESSION" close 2>/dev/null || true
+  agent-browser --session "$SESSION" close 2>/dev/null || true
+
   # Load state via --state flag on first open (state load requires no running browser)
-  agent-browser --session "$SESSION" --executable-path "$CHROME_PATH" --args "$CHROME_ARGS" --state "$AUTH_STATE" open "https://claude.ai/new"
+  # Must use --headed here if HEADED_MODE is set, since this starts the daemon
+  if [[ "$HEADED_MODE" == "true" ]]; then
+    agent-browser --session "$SESSION" --headed --executable-path "$CHROME_PATH" --args "$CHROME_ARGS" --state "$AUTH_STATE" open "https://claude.ai/new"
+  else
+    agent-browser --session "$SESSION" --executable-path "$CHROME_PATH" --args "$CHROME_ARGS" --state "$AUTH_STATE" open "https://claude.ai/new"
+  fi
 
   # Give page time to settle and potentially redirect
   sleep 3
@@ -305,7 +313,7 @@ extract_thinking() {
 
   # Look for thinking-related elements in the snapshot
   local thinking_ref
-  thinking_ref=$(echo "$snapshot" | grep -i 'think\|reasoning' | head -1 | grep -o '@e[0-9]*' | head -1 || echo "")
+  thinking_ref=$(echo "$snapshot" | grep -i 'think\|reasoning' | head -1 | grep -oE 'ref=e[0-9]+' | head -1 | sed 's/ref=//' || echo "")
 
   if [[ -n "$thinking_ref" ]]; then
     log "  Found thinking panel toggle: $thinking_ref"
@@ -364,10 +372,8 @@ run_prompt() {
     return 0  # Don't kill the batch
   fi
 
-  sleep 3
-
-  # Wait for page to load
-  ab wait --load networkidle 2>/dev/null || sleep 2
+  # Wait for page to load (avoid networkidle — Claude.ai WebSockets keep it active)
+  sleep 5
 
   # Discover the input field via snapshot
   log "  Taking snapshot to find input field..."
@@ -386,21 +392,21 @@ run_prompt() {
   local input_ref
 
   # Strategy 1: Look for the active textbox with "Write your prompt" label
-  input_ref=$(echo "$snapshot" | grep -iE 'textbox.*[Ww]rite your prompt|textbox.*[Hh]ow can I help' | grep -o '@e[0-9]*' | head -1 || echo "")
+  input_ref=$(echo "$snapshot" | grep -iE 'textbox.*[Ww]rite your prompt|textbox.*[Hh]ow can I help' | grep -oE 'ref=e[0-9]+' | head -1 | sed 's/ref=//' || echo "")
 
   # Strategy 2: Look for any active textbox on the page
   if [[ -z "$input_ref" ]]; then
-    input_ref=$(echo "$snapshot" | grep -iE 'textbox.*\[active\]' | grep -o '@e[0-9]*' | head -1 || echo "")
+    input_ref=$(echo "$snapshot" | grep -iE 'textbox.*\[active\]' | grep -oE 'ref=e[0-9]+' | head -1 | sed 's/ref=//' || echo "")
   fi
 
   # Strategy 3: Look for textbox with common chat input patterns
   if [[ -z "$input_ref" ]]; then
-    input_ref=$(echo "$snapshot" | grep -iE 'textbox|contenteditable|ProseMirror|"Send a message"|"Reply"|placeholder.*[Hh]ow can' | head -1 | grep -o '@e[0-9]*' | head -1 || echo "")
+    input_ref=$(echo "$snapshot" | grep -iE 'textbox|contenteditable|ProseMirror|"Send a message"|"Reply"|placeholder.*[Hh]ow can' | head -1 | grep -oE 'ref=e[0-9]+' | head -1 | sed 's/ref=//' || echo "")
   fi
 
   # Strategy 4: Broader fallback
   if [[ -z "$input_ref" ]]; then
-    input_ref=$(echo "$snapshot" | grep -iE 'textarea|[Mm]essage|[Cc]hat|[Pp]rompt' | head -1 | grep -o '@e[0-9]*' | head -1 || echo "")
+    input_ref=$(echo "$snapshot" | grep -iE 'textarea|[Mm]essage|[Cc]hat|[Pp]rompt' | head -1 | grep -oE 'ref=e[0-9]+' | head -1 | sed 's/ref=//' || echo "")
   fi
 
   local filled=false
