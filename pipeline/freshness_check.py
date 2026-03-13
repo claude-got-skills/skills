@@ -11,6 +11,7 @@ Usage:
     python -m pipeline.freshness_check --force       # Re-check all (ignore recency)
     python -m pipeline.freshness_check --quiet       # Suppress notifications
     python -m pipeline.freshness_check --classify    # Classify changes by actionability
+    python -m pipeline.freshness_check --classify --update-kb  # Classify + auto-update KB
 """
 
 import argparse
@@ -41,6 +42,7 @@ from .detect import (
 from .report import CheckReport, SourceResult, save_report, save_classified_report
 from .notify import notify_changes, notify_errors, notify_no_changes
 from .classify import classify_results, get_api_client
+from .update_kb import update_kb_files, format_update_summary
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +123,7 @@ def run_check(
     force: bool = False,
     quiet: bool = False,
     classify: bool = False,
+    update_kb: bool = False,
 ) -> CheckReport:
     """Run the freshness check against all specified sources.
 
@@ -130,6 +133,8 @@ def run_check(
         force: If True, re-check all sources regardless of recency.
         quiet: If True, suppress macOS notifications.
         classify: If True, classify detected changes by actionability.
+        update_kb: If True (requires classify), auto-update KB files for
+            CRITICAL and HIGH changes.
 
     Returns:
         CheckReport with all results.
@@ -215,6 +220,7 @@ def run_check(
 
     # Classify changes if requested
     classifications = []
+    kb_update_results = []
     if classify and report.has_changes:
         logger.info("")
         logger.info("--- Classification ---")
@@ -225,10 +231,23 @@ def run_check(
             classified_path = save_classified_report(report, classifications)
             if classified_path:
                 logger.info("Classified report: %s", classified_path)
+
+            # Auto-update KB files if requested
+            if update_kb and classifications:
+                logger.info("")
+                logger.info("--- KB Auto-Update ---")
+                kb_update_results = update_kb_files(classifications, report, client)
+                if kb_update_results:
+                    summary = format_update_summary(kb_update_results)
+                    logger.info("\n%s", summary)
+            elif update_kb and not classifications:
+                logger.info("No classifications to update KB from")
         else:
             logger.warning("Skipping classification — no API client available")
     elif classify and not report.has_changes:
         logger.info("No changes to classify")
+    elif update_kb and not classify:
+        logger.warning("--update-kb requires --classify — skipping KB update")
 
     # Record run history
     record_run_history(
@@ -254,6 +273,12 @@ def run_check(
             count = sum(1 for c in classifications if c["category"] == cat)
             if count:
                 logger.info("  %s:  %d", cat.ljust(10), count)
+    if kb_update_results:
+        updated_count = sum(1 for r in kb_update_results if r.status == "updated")
+        created_count = sum(1 for r in kb_update_results if r.status == "created")
+        error_count = sum(1 for r in kb_update_results if r.status == "error")
+        logger.info("  KB updated: %d | created: %d | errors: %d",
+                     updated_count, created_count, error_count)
     if report_path:
         logger.info("  Report:    %s", report_path)
 
@@ -310,6 +335,12 @@ def main() -> None:
         action="store_true",
         help="Classify detected changes by actionability (requires ANTHROPIC_API_KEY)",
     )
+    parser.add_argument(
+        "--update-kb",
+        action="store_true",
+        dest="update_kb",
+        help="Auto-update KB files for CRITICAL/HIGH changes (requires --classify)",
+    )
 
     args = parser.parse_args()
 
@@ -339,6 +370,7 @@ def main() -> None:
         force=args.force,
         quiet=args.quiet,
         classify=args.classify,
+        update_kb=args.update_kb,
     )
 
     # Exit with error if any scrapes failed
