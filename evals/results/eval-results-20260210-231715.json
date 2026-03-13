@@ -1,0 +1,1558 @@
+{
+  "metadata": {
+    "model": "claude-haiku-4-5-20251001",
+    "judge_model": null,
+    "timestamp": "20260210-231715",
+    "skill_version": "1.2.1",
+    "conditions": [
+      "control",
+      "treatment"
+    ],
+    "runs": 1,
+    "use_judge": false
+  },
+  "results": [
+    {
+      "test_id": "1.1",
+      "category": "Architecture Decisions",
+      "condition": "control",
+      "response": "# Simple Document Analysis Pipeline\n\nHere's a practical architecture for a small team:\n\n## Core Components\n\n**1. Document Processing Layer**\n```\nPDF \u2192 Text Extraction \u2192 Chunking \u2192 Storage\n```\n- Use **PyPDF2** or **pdfplumber** for extraction (good balance of simplicity/reliability)\n- Split into ~500-1000 token chunks with 100-token overlap to preserve context\n- Store chunks in a simple SQLite database initially (scales up later if needed)\n\n**2. Information Extraction**\n```\nChunks \u2192 LLM \u2192 Structured JSON \u2192 Validation\n```\n- Use Claude API or similar with a clear prompt specifying output format\n- Extract: key entities, dates, amounts, decisions, dependencies\n- Batch process chunks (cheaper, less latency than individual calls)\n- Include validation step to catch hallucinations\n\n**3. Cross-Reference Module**\n```\nExtracted Data \u2192 Query Knowledge Base \u2192 Flags/Enrichment\n```\n- Start with a simple JSON or CSV knowledge base\n- Query for matches on entities (company names, regulations, precedents)\n- Flag inconsistencies or missing context\n- Lightweight\u2014don't over-engineer this yet\n\n**4. Summary Generation**\n```\nStructured Data \u2192 LLM \u2192 Final Report\n```\n- Feed validated extractions + cross-reference results to a final summarization prompt\n- Generate structured output (JSON or markdown)\n\n## Recommended Stack\n\n```python\n# Minimal viable tech stack\n- PDF parsing: pdfplumber\n- Storage: SQLite (or PostgreSQL later)\n- LLM: Claude API (good for document understanding)\n- Orchestration: Python + simple queue (celery lite, or just threading)\n- Output: JSON \u2192 HTML/PDF templates\n```\n\n## Practical Example Flow\n\n```python\ndef process_document(pdf_path):\n    # 1. Extract\n    chunks = extract_chunks(pdf_path)\n    \n    # 2. Extract info\n    extractions = batch_extract(chunks, llm_client)\n    validate(extractions)\n    \n    # 3. Cross-reference\n    enriched = cross_reference_kb(extractions)\n    \n    # 4. Summarize\n    summary = generate_summary(enriched)\n    \n    return summary\n```\n\n## What I'd Skip Initially\n\n- \u274c Complex vector databases (SQLite is fine)\n- \u274c Custom fine-tuning (prompt engineering is faster)\n- \u274c Async task queues (add only if you hit latency issues)\n- \u274c Sophisticated fallback logic (good error messages > complex error handling)\n\n## Scaling Path\n\n1. **Month 1**: SQLite + simple Python + Claude API\n2. **Month 2-3**: If needed \u2192 PostgreSQL, add caching layer\n3. **Month 3+**: If needed \u2192 vector DB for similarity search, job queue\n\n## Key Risks to Watch\n\n- **Hallucination**: Validate extractions against original text\n- **Context loss**: Don't over-chunk; preserve sentence boundaries\n- **Cost**: Batch similar documents; cache knowledge base queries\n- **Iteration**: Build a small test set (10-20 docs) early to refine prompts\n\nStart with a 2-3 document pilot. You'll learn more about your actual bottlenecks than from planning. What type of documents are you processing?",
+      "scores": {
+        "accuracy_matched": [
+          "cost"
+        ],
+        "accuracy_score": 1,
+        "accuracy_total": 8,
+        "accuracy_pct": 12.5,
+        "completeness_matched": [
+          "batch"
+        ],
+        "completeness_score": 1,
+        "completeness_total": 6,
+        "completeness_pct": 16.7,
+        "deprecated_found": [
+          "chunk",
+          "split into"
+        ],
+        "deprecated_count": 2,
+        "avoids_deprecated": 0
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 71,
+        "output_tokens": 777
+      }
+    },
+    {
+      "test_id": "1.2",
+      "category": "Architecture Decisions",
+      "condition": "control",
+      "response": "# QA System Architecture for AI Content\n\nHere's a practical multi-layered approach:\n\n## 1. **Automated Checks (First Pass)**\n\n**Structural validation:**\n- Length/format requirements\n- Required sections present\n- Formatting consistency\n- Broken links or references\n\n**Style guide compliance:**\n- Vocabulary restrictions (jargon lists, banned terms)\n- Tone markers (sentiment analysis, reading level)\n- Grammar/punctuation patterns\n- Brand voice consistency (regex patterns or ML classifiers)\n\n**Factual anchoring:**\n- Citation presence for claims\n- Against known-false statements database\n- Consistency with authoritative sources (APIs to fact-check services)\n- Outdated information flags\n\n## 2. **Hybrid Review Layer**\n\n**For high-stakes content** (medical, financial, legal):\n- Route to human review automatically\n- Use AI to *suggest* corrections, not validate truth\n- Flag confidence levels: \"System uncertain - escalate\"\n\n**Risk-based routing:**\n- Topic sensitivity scoring\n- Customer impact level\n- Regulatory sensitivity\n\n## 3. **Human Review Workflow**\n\n- Dashboard showing flagged items with AI reasoning\n- Easy approve/reject/edit interface\n- Feedback loops: collect human corrections \u2192 improve automated checkers\n- Audit trail for compliance\n\n## 4. **Practical Implementation Tips**\n\n**Start simple:**\n- Rule-based checks first (high precision, catch 80% of issues)\n- Add ML classifiers only where rules fail\n- Use off-the-shelf tools (Grammarly API, language model APIs for tone)\n\n**Avoid common pitfalls:**\n- Don't rely solely on LLMs to validate their own output (they hallucinate confidently)\n- Make human reviewers your ground truth; use their feedback to retrain\n- Build in appeal/override mechanisms\u2014automated systems will be wrong\n\n**Stack recommendation:**\n```\nContent \u2192 Automated checks \u2192 Risk routing \u2192 \nHuman review (if flagged) \u2192 Approval \u2192 Publishing\n```\n\nWhat type of content are you reviewing? That affects how aggressive to be with automation vs. human oversight.",
+      "scores": {
+        "accuracy_matched": [],
+        "accuracy_score": 0,
+        "accuracy_total": 7,
+        "accuracy_pct": 0.0,
+        "completeness_matched": [],
+        "completeness_score": 0,
+        "completeness_total": 5,
+        "completeness_pct": 0.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 57,
+        "output_tokens": 477
+      }
+    },
+    {
+      "test_id": "1.3",
+      "category": "Architecture Decisions",
+      "condition": "control",
+      "response": "# Integrating Claude into Next.js with Streaming\n\nHere's the simplest approach using the Anthropic SDK:\n\n## 1. Install Dependencies\n\n```bash\nnpm install @anthropic-ai/sdk\n```\n\n## 2. Create an API Route\n\nCreate `app/api/chat/route.ts`:\n\n```typescript\nimport Anthropic from \"@anthropic-ai/sdk\";\n\nconst anthropic = new Anthropic({\n  apiKey: process.env.ANTHROPIC_API_KEY,\n});\n\nexport async function POST(request: Request) {\n  const { messages } = await request.json();\n\n  const stream = await anthropic.messages.stream({\n    model: \"claude-3-5-sonnet-20241022\",\n    max_tokens: 1024,\n    messages: messages,\n  });\n\n  // Convert to ReadableStream for Next.js\n  const readableStream = stream.toReadableStream();\n  return new Response(readableStream, {\n    headers: {\n      \"Content-Type\": \"text/event-stream\",\n      \"Cache-Control\": \"no-cache\",\n      Connection: \"keep-alive\",\n    },\n  });\n}\n```\n\n## 3. Create a Client Component\n\nCreate `app/components/ChatBox.tsx`:\n\n```typescript\n\"use client\";\n\nimport { useState } from \"react\";\n\nexport default function ChatBox() {\n  const [input, setInput] = useState(\"\");\n  const [messages, setMessages] = useState<\n    Array<{ role: \"user\" | \"assistant\"; content: string }>\n  >([]);\n  const [isLoading, setIsLoading] = useState(false);\n\n  const handleSubmit = async (e: React.FormEvent) => {\n    e.preventDefault();\n    if (!input.trim()) return;\n\n    const userMessage = input;\n    setInput(\"\");\n    setMessages((prev) => [...prev, { role: \"user\", content: userMessage }]);\n    setIsLoading(true);\n\n    try {\n      const response = await fetch(\"/api/chat\", {\n        method: \"POST\",\n        headers: { \"Content-Type\": \"application/json\" },\n        body: JSON.stringify({\n          messages: [...messages, { role: \"user\", content: userMessage }],\n        }),\n      });\n\n      if (!response.ok) throw new Error(\"API request failed\");\n\n      let assistantMessage = \"\";\n      const reader = response.body?.getReader();\n      const decoder = new TextDecoder();\n\n      if (reader) {\n        while (true) {\n          const { done, value } = await reader.read();\n          if (done) break;\n\n          const chunk = decoder.decode(value);\n          const lines = chunk.split(\"\\n\");\n\n          for (const line of lines) {\n            if (line.startsWith(\"data:\")) {\n              try {\n                const data = JSON.parse(line.slice(5));\n                if (\n                  data.type === \"content_block_delta\" &&\n                  data.delta?.type === \"text_delta\"\n                ) {\n                  assistantMessage += data.delta.text;\n                  setMessages((prev) => {\n                    const updated = [...prev];\n                    if (\n                      updated[updated.length - 1]?.role === \"assistant\"\n                    ) {\n                      updated[updated.length - 1].content = assistantMessage;\n                    } else {\n                      updated.push({\n                        role: \"assistant\",\n                        content: assistantMessage,\n                      });\n                    }\n                    return updated;\n                  });\n                }\n              } catch (e) {\n                // Skip invalid JSON\n              }\n            }\n          }\n        }\n      }\n    } catch (error) {\n      console.error(\"Chat error:\", error);\n    } finally {\n      setIsLoading(false);\n    }\n  };\n\n  return (\n    <div className=\"w-full max-w-2xl mx-auto p-4\">\n      <div className=\"space-y-4 mb-4 h-96 overflow-y-auto border rounded p-4\">\n        {messages.map((msg, i) => (\n          <div\n            key={i}\n            className={`p-3 rounded ${\n              msg.role === \"user\"\n                ? \"bg-blue-100 ml-auto max-w-xs\"\n                : \"bg-gray-100 mr-auto max-w-xs\"\n            }`}\n          >\n            {msg.content}\n          </div>\n        ))}\n      </div>\n\n      <form onSubmit={handleSubmit} className=\"flex gap-2\">\n        <input\n          type=\"text\"\n          value={input}\n          onChange={(e) => setInput(e.target.value)}\n          disabled={isLoading}\n          placeholder=\"Ask a question...\"\n          className=\"flex-1 border rounded px-4 py-2\"\n        />\n        <button\n          type=\"submit\"\n          disabled={isLoading}\n          className=\"bg-blue-500 text-white rounded px-6 py-2 disabled:opacity-50\"\n        >\n          {isLoading ? \"...\" : \"Send\"}\n        </button>\n      </form>\n    </div>\n  );\n}\n```\n\n## 4. Set Environment Variable\n\nAdd to `.env.local`:\n\n```\nANTHROPIC_API_KEY=your-api-key-here\n```\n\n## 5. Use in Your App\n\n```typescript\nimport ChatBox from \"./components/ChatBox\";\n\nexport default function Home() {\n  return (\n    <main className=\"p-8\">\n      <h1 className=\"text-2xl mb-4\">AI Chat</h1>\n      <ChatBox />\n    </main>\n  );\n}\n```\n\n## Key Points\n\n- **Server-side only**: API key stays secure on the backend\n- **Streaming**: Real-time text output via Server-Sent Events\n- **Simple**: No complex libraries needed beyond the SDK\n- **Extensible**: Add your data context in the messages before sending\n\nFor production, add rate limiting, error handling, and consider storing conversation history in a database.",
+      "scores": {
+        "accuracy_matched": [
+          "streaming",
+          "sdk"
+        ],
+        "accuracy_score": 2,
+        "accuracy_total": 5,
+        "accuracy_pct": 40.0,
+        "completeness_matched": [
+          "server-sent events"
+        ],
+        "completeness_score": 1,
+        "completeness_total": 5,
+        "completeness_pct": 20.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 57,
+        "output_tokens": 1466
+      }
+    },
+    {
+      "test_id": "2.1",
+      "category": "Can Claude Do X",
+      "condition": "control",
+      "response": "Unfortunately, Claude doesn't have built-in persistent memory between conversations. Each conversation starts fresh with no knowledge of previous ones.\n\nBut there are practical workarounds for your use case:\n\n**Best approaches:**\n\n1. **Conversation history in prompts** - Include relevant context from previous sessions in your system prompt or initial message. This is simple and works well for moderate amounts of info.\n\n2. **External storage + retrieval** - Store project state in your own database and pass it to Claude each time:\n   - Summaries of past decisions\n   - Current project status\n   - Key constraints or requirements\n   - Previous solutions attempted\n\n3. **Long context windows** - Claude 3.5 Sonnet has a 200k token context window. You could theoretically dump an entire project history if it fits, though this gets expensive and slow.\n\n4. **Hybrid approach** - Store full details externally, but curate what you actually send Claude each time (usually much more efficient).\n\n**Practical tips:**\n\n- Structure stored context clearly (it helps Claude parse it faster)\n- Timestamp entries so Claude knows what's current\n- Include reasoning behind past decisions, not just decisions themselves\n- Consider storing conversation excerpts verbatim for complex discussions\n\n**Honest limitation:** This requires you to manage the memory layer. Claude can't autonomously maintain state or pull from a database. But if your tool handles that, Claude becomes quite capable at picking up where it left off.\n\nWhat kind of projects are we talking about? The answer might shift which approach makes most sense.",
+      "scores": {
+        "accuracy_matched": [
+          "persistent"
+        ],
+        "accuracy_score": 1,
+        "accuracy_total": 5,
+        "accuracy_pct": 20.0,
+        "completeness_matched": [],
+        "completeness_score": 0,
+        "completeness_total": 5,
+        "completeness_pct": 0.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 48,
+        "output_tokens": 339
+      }
+    },
+    {
+      "test_id": "2.2",
+      "category": "Can Claude Do X",
+      "condition": "control",
+      "response": "# Reducing MCP Tool Context Overhead\n\nYou're hitting a real constraint. Here are practical approaches:\n\n## 1. **Lazy/Dynamic Tool Registration**\nInstead of declaring all tools upfront, load them on-demand:\n\n```python\n# Pseudo-code approach\ntools_manifest = load_tool_index()  # Just metadata: names, descriptions\n\ndef process_with_claude(prompt, user_query):\n    # First pass: Claude picks which tools it needs\n    response = client.messages.create(\n        model=\"claude-3-5-sonnet-20241022\",\n        max_tokens=1000,\n        tools=tools_manifest,  # Lightweight list only\n        messages=[{\"role\": \"user\", \"content\": prompt}]\n    )\n    \n    # Second pass: Load only the tools Claude actually requested\n    needed_tools = extract_tool_names(response)\n    full_definitions = load_tool_definitions(needed_tools)\n    \n    # Continue with actual tool use\n```\n\n## 2. **Hierarchical Tool Organization**\nGroup related tools and let Claude pick a category first:\n\n```python\ntools = [\n    {\n        \"name\": \"database_tools\",\n        \"description\": \"Database operations (50+ tools)\",\n        \"type\": \"tool_group\"\n    },\n    {\n        \"name\": \"api_tools\", \n        \"description\": \"REST API integrations (200+ tools)\",\n        \"type\": \"tool_group\"\n    }\n]\n\n# Claude picks a group, then you expand just that group\n```\n\n## 3. **Smarter Tool Filtering**\nPre-filter based on context:\n\n```python\ndef get_relevant_tools(query):\n    # Use embeddings, keywords, or task routing\n    relevant_subset = vector_search_tools(query, top_k=20)\n    return relevant_subset\n```\n\n## 4. **MCP-Specific Optimization**\n- Check if your MCP server supports tool listing/filtering\n- Some servers can serve tool definitions on-request rather than all-at-once\n- Consider splitting MCPs by domain\n\n## Real Tradeoff\n\n**The problem:** Claude can't use tools it doesn't know about. You're essentially choosing between:\n- **Context cost**: Define everything upfront (~50-100k tokens for 100+ tools)\n- **Latency cost**: Multi-turn where Claude first requests a tool category, then you load and retry\n\nFor hundreds of tools, **hybrid approach works best**:\n- Always include ~20 most common tools in full\n- Index others by category/tags\n- Load on-demand when Claude specifically asks for something\n\nWhat's your MCP setup? (What server/tools?) That might open domain-specific optimizations.",
+      "scores": {
+        "accuracy_matched": [
+          "dynamic"
+        ],
+        "accuracy_score": 1,
+        "accuracy_total": 6,
+        "accuracy_pct": 16.7,
+        "completeness_matched": [
+          "context"
+        ],
+        "completeness_score": 1,
+        "completeness_total": 4,
+        "completeness_pct": 25.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 50,
+        "output_tokens": 633
+      }
+    },
+    {
+      "test_id": "2.3",
+      "category": "Can Claude Do X",
+      "condition": "control",
+      "response": "# Using Claude for Web Form Data Entry\n\nClaude can help with this, but **not directly through the API** in the way you might be imagining. Here are your actual options:\n\n## What Claude Can Do via API\n\n1. **Parse and prepare data** - Claude can process information and structure it correctly for form entry\n2. **Generate instructions** - Claude can tell you (or another system) what data to enter where\n3. **Validate entries** - Claude can review form data before submission\n4. **Process screenshots** - With vision capabilities, Claude can analyze form layouts and identify fields\n\n## What Claude Cannot Do Directly\n\n- **Control your browser** - Claude can't click buttons, type into forms, or navigate pages\n- **Execute JavaScript** - Can't interact with dynamic web content\n- **Maintain persistent sessions** - API calls are stateless\n\n## Practical Solutions\n\n**Option 1: Claude + Browser Automation**\nCombine Claude's API with tools like:\n- Selenium, Playwright, or Puppeteer\n- Claude provides the logic/decisions\n- Browser automation handles the actual interaction\n\n**Option 2: Claude in Browser Extensions**\nBuild a browser extension that:\n- Shows Claude's suggestions in-page\n- You or the extension execute the actions\n\n**Option 3: Use Claude as the Intelligence Layer**\n- You/system takes screenshots\n- Send to Claude for analysis and next-step guidance\n- Human or automation executes those steps\n\n## Best For\n\nClaude works best when you need intelligent decision-making about *what* to enter, not the mechanical *how* of browser interaction.\n\nWhat's your specific use case? That would help me suggest the most practical approach.",
+      "scores": {
+        "accuracy_matched": [
+          "screenshot"
+        ],
+        "accuracy_score": 1,
+        "accuracy_total": 6,
+        "accuracy_pct": 16.7,
+        "completeness_matched": [
+          "browser"
+        ],
+        "completeness_score": 1,
+        "completeness_total": 6,
+        "completeness_pct": 16.7,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 39,
+        "output_tokens": 368
+      }
+    },
+    {
+      "test_id": "3.1",
+      "category": "Implementation Guidance",
+      "condition": "control",
+      "response": "I appreciate the question, but I need to clarify a couple of things:\n\n1. **Version note**: There's no Claude Opus 4.6 released yet. You might be using Claude 3.5 Sonnet or another current model. If you have access to a newer version, the documentation for that specific model would be your best source.\n\n2. **Extended thinking control**: If you're referring to Claude's extended thinking feature (available in some models), here's how it typically works:\n\n**Via API:**\n```json\n{\n  \"model\": \"claude-3-7-sonnet-20250219\",\n  \"max_tokens\": 16000,\n  \"thinking\": {\n    \"type\": \"enabled\",\n    \"budget_tokens\": 5000\n  },\n  \"messages\": [...]\n}\n```\n\nYou'd adjust `budget_tokens` based on task complexity:\n- **Simple lookups**: 1,000-2,000 tokens\n- **Moderate analysis**: 3,000-5,000 tokens  \n- **Complex reasoning**: 8,000-10,000 tokens\n\n**Via web interface**: Controls may be in model settings if available.\n\n3. **Best practice**: Rather than always configuring thinking, consider:\n   - Using it selectively for genuinely complex problems\n   - Starting with shorter thinking budgets and increasing if needed\n   - Using simpler models for straightforward tasks\n\nWhat's your actual use case? That would help me give more specific guidance.",
+      "scores": {
+        "accuracy_matched": [
+          "thinking",
+          "max"
+        ],
+        "accuracy_score": 2,
+        "accuracy_total": 7,
+        "accuracy_pct": 28.6,
+        "completeness_matched": [
+          "budget_tokens",
+          "opus 4.6"
+        ],
+        "completeness_score": 2,
+        "completeness_total": 5,
+        "completeness_pct": 40.0,
+        "deprecated_found": [
+          "budget_tokens"
+        ],
+        "deprecated_count": 1,
+        "avoids_deprecated": 0
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 60,
+        "output_tokens": 337
+      }
+    },
+    {
+      "test_id": "3.2",
+      "category": "Implementation Guidance",
+      "condition": "control",
+      "response": "# Upgrading to Claude Opus 4.6 with Message Prefilling\n\nGood news: **message prefilling should work the same way.** Opus 4.6 supports assistant message prefilling just like previous models, so your existing integration should be compatible.\n\nA few things to verify:\n\n## Direct compatibility checks\n- Test your prefilled format with `claude-opus-4-1-20250805` to ensure the model follows your starter text as expected\n- Check that response quality meets your needs (Opus 4.6 may handle some edge cases differently)\n\n## Potential considerations\n\n1. **Behavior changes**: While prefilling mechanics are stable, Opus 4.6 is more capable and may sometimes diverge from your intended format if it \"thinks\" a different structure is better. If this happens, you might need to:\n   - Make prefills more explicit/detailed\n   - Add constraints to your system prompt\n   - Test edge cases you care about\n\n2. **Token efficiency**: Opus 4.6 may be more efficient, potentially affecting your token usage (usually favorably)\n\n3. **API updates**: Verify you're using the latest API version if you upgraded your SDK\n\n## Recommended migration path\n1. Parallel test with both models on representative inputs\n2. Check that prefilled format compliance is consistent\n3. Monitor the first batch of production requests\n4. Rollover once you're confident\n\nIs your prefilling for a specific output format (JSON, structured text, etc.)? That context might reveal any additional considerations.",
+      "scores": {
+        "accuracy_matched": [
+          "prefill",
+          "system prompt"
+        ],
+        "accuracy_score": 2,
+        "accuracy_total": 6,
+        "accuracy_pct": 33.3,
+        "completeness_matched": [
+          "migration"
+        ],
+        "completeness_score": 1,
+        "completeness_total": 4,
+        "completeness_pct": 25.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 53,
+        "output_tokens": 341
+      }
+    },
+    {
+      "test_id": "3.3",
+      "category": "Implementation Guidance",
+      "condition": "control",
+      "response": "# Guaranteed JSON Schema Compliance\n\nYou have a few options with different guarantees:\n\n## 1. **JSON Mode (Best for most cases)**\nUse Claude's `json_mode` parameter:\n\n```python\nresponse = client.messages.create(\n    model=\"claude-3-5-sonnet-20241022\",\n    max_tokens=1024,\n    messages=[...],\n    temperature=0,  # Recommended for JSON\n    json_mode=True  # Enable JSON mode\n)\n```\n\n**Guarantees:** Claude will *only* output valid JSON (no markdown, no extra text). However, it doesn't guarantee your specific schema structure.\n\n## 2. **Structured Outputs (Strongest guarantee)**\nThis is the most reliable approach for schema compliance:\n\n```python\nfrom anthropic import Anthropic\n\nresponse = client.messages.create(\n    model=\"claude-3-5-sonnet-20241022\",\n    max_tokens=1024,\n    messages=[...],\n    temperature=0,\n    structured_outputs={\n        \"type\": \"json_schema\",\n        \"json_schema\": {\n            \"name\": \"YourSchemaName\",\n            \"strict\": True,\n            \"schema\": {\n                \"type\": \"object\",\n                \"properties\": {\n                    \"field1\": {\"type\": \"string\"},\n                    \"field2\": {\"type\": \"number\"}\n                },\n                \"required\": [\"field1\", \"field2\"],\n                \"additionalProperties\": False\n            }\n        }\n    }\n)\n```\n\n**Guarantees:** Claude's response will *always* match your schema exactly when `\"strict\": True`.\n\n## 3. **Validation + Retry (Pragmatic fallback)**\n```python\nimport json\nfrom pydantic import ValidationError, BaseModel\n\nclass YourSchema(BaseModel):\n    field1: str\n    field2: int\n\ndef get_valid_json(prompt: str, max_retries: int = 3):\n    for attempt in range(max_retries):\n        response = client.messages.create(\n            model=\"claude-3-5-sonnet-20241022\",\n            messages=[{\"role\": \"user\", \"content\": prompt}],\n            json_mode=True\n        )\n        try:\n            data = json.loads(response.content[0].text)\n            return YourSchema(**data)  # Validates against schema\n        except (json.JSONDecodeError, ValidationError) as e:\n            if attempt == max_retries - 1:\n                raise\n            # Retry with clarification\n            prompt += f\"\\n\\nError: {e}. Please fix and retry.\"\n    \n    return None\n```\n\n## Recommendation\n\n- **Use Structured Outputs** if you need guaranteed compliance (preferred)\n- **Use JSON Mode** if you just need valid JSON output\n- **Use validation + retry** if you need to support older models or want explicit control\n\nWhich use case matters most to you?",
+      "scores": {
+        "accuracy_matched": [
+          "structured output",
+          "json_schema",
+          "strict",
+          "guaranteed"
+        ],
+        "accuracy_score": 4,
+        "accuracy_total": 5,
+        "accuracy_pct": 80.0,
+        "completeness_matched": [],
+        "completeness_score": 0,
+        "completeness_total": 5,
+        "completeness_pct": 0.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 42,
+        "output_tokens": 695
+      }
+    },
+    {
+      "test_id": "4.1",
+      "category": "Model Selection",
+      "condition": "control",
+      "response": "For your use case, **Claude 3.5 Sonnet** is likely your best choice. Here's why:\n\n## Key Advantages for Your Needs\n\n**Long Document Handling**\n- 200k token context window handles 200+ pages easily\n- Can process entire documents without splitting\n- Maintains context across lengthy analyses\n\n**Analysis Quality**\n- Excellent reasoning and detail in outputs\n- Strong performance on complex analytical tasks\n- Handles nuanced document interpretation well\n\n**Cost Efficiency**\n- Significantly cheaper than Claude 3 Opus\n- Pricing is roughly 1/5th the cost of Opus\n- Input tokens: $3/M, Output tokens: $15/M\n\n## When to Consider Alternatives\n\n**Claude 3.5 Haiku** if:\n- You're cost-constrained and need basic summarization/extraction\n- Documents are complex but analysis needs are simpler\n- Speed is prioritized over depth\n\n**Claude 3 Opus** only if:\n- You need absolute peak performance\n- Budget isn't a constraint\n- Document complexity is extremely high\n\n## Practical Recommendation\n\nStart with **Sonnet**\u2014it handles sophisticated analysis well while keeping costs reasonable. Test it on a representative document. If results don't meet your needs, Opus is your upgrade path.\n\nWhat type of analysis are you doing? That might help refine this further.",
+      "scores": {
+        "accuracy_matched": [
+          "200k"
+        ],
+        "accuracy_score": 1,
+        "accuracy_total": 7,
+        "accuracy_pct": 14.3,
+        "completeness_matched": [
+          "cost"
+        ],
+        "completeness_score": 1,
+        "completeness_total": 6,
+        "completeness_pct": 16.7,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 50,
+        "output_tokens": 309
+      }
+    },
+    {
+      "test_id": "5.1",
+      "category": "Extension Awareness",
+      "condition": "control",
+      "response": "I'd be happy to help you write a proposal for Acme Corp! To create something useful, I'll need some details:\n\n**About the project:**\n- What product/service are you proposing?\n- What problem does it solve for them?\n- What's the scope of work (timeline, deliverables, etc.)?\n\n**Pricing & terms:**\n- What are your proposed costs?\n- Payment terms (upfront, milestones, net-30, etc.)?\n- Any special conditions?\n\n**About Acme Corp:**\n- What's their industry/business type?\n- Who's the decision-maker/stakeholder?\n- Any context on how they came to you or what triggered this proposal?\n\n**Your template:**\n- Do you want me to follow a specific format, or should I create a standard structure?\n- Any company branding details (logo, color, tone) I should know about?\n\nOnce you provide these details, I can draft the full proposal or help with specific sections.",
+      "scores": {
+        "accuracy_matched": [
+          "template",
+          "/"
+        ],
+        "accuracy_score": 2,
+        "accuracy_total": 6,
+        "accuracy_pct": 33.3,
+        "completeness_matched": [],
+        "completeness_score": 0,
+        "completeness_total": 6,
+        "completeness_pct": 0.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 54,
+        "output_tokens": 224
+      }
+    },
+    {
+      "test_id": "5.2",
+      "category": "Extension Awareness",
+      "condition": "control",
+      "response": "# Automating Python Linting and Type Checks\n\nYes! There are several great approaches:\n\n## 1. **Git Pre-commit Hooks** (Recommended)\n\nUse the `pre-commit` framework to run checks before each commit:\n\n```bash\npip install pre-commit\n```\n\nCreate `.pre-commit-config.yaml` in your repo:\n\n```yaml\nrepos:\n  - repo: https://github.com/psf/black\n    rev: 23.12.0\n    hooks:\n      - id: black\n  - repo: https://github.com/astral-sh/ruff\n    rev: 0.1.8\n    hooks:\n      - id: ruff\n        args: [--fix]\n  - repo: https://github.com/pre-commit/mirrors-mypy\n    rev: v1.7.1\n    hooks:\n      - id: mypy\n        additional_dependencies: [types-all]\n```\n\nInstall the hook:\n```bash\npre-commit install\n```\n\nNow checks run automatically before each commit!\n\n## 2. **IDE Extensions**\n\nMost editors run checks on save:\n- **VS Code**: Python, Pylance extensions\n- **PyCharm**: Built-in linting\n- **Vim/Neovim**: `python-lsp-server` or `pylsp`\n\n## 3. **File Watcher Script**\n\nFor real-time feedback while editing:\n\n```bash\npip install watchdog\n```\n\nCreate `watch.py`:\n```python\nimport subprocess\nimport time\nfrom watchdog.observers import Observer\nfrom watchdog.events import FileSystemEventHandler\n\nclass PythonCheckHandler(FileSystemEventHandler):\n    def on_modified(self, event):\n        if event.src_path.endswith('.py'):\n            print(f\"\\nChecking {event.src_path}...\")\n            subprocess.run(['black', '--check', event.src_path])\n            subprocess.run(['ruff', 'check', event.src_path])\n            subprocess.run(['mypy', event.src_path])\n\nobserver = Observer()\nobserver.schedule(PythonCheckHandler(), '.', recursive=True)\nobserver.start()\nprint(\"Watching for changes... (Ctrl+C to stop)\")\ntry:\n    while True:\n        time.sleep(1)\nexcept KeyboardInterrupt:\n    observer.stop()\n```\n\nRun with: `python watch.py`\n\n## 4. **CI/CD Pipeline**\n\nAdd to GitHub Actions, GitLab CI, etc., to catch issues on every push.\n\n## My Recommendation\n\nStart with **pre-commit hooks** + **IDE extensions**. Pre-commit ensures nothing bad gets committed, while IDE extensions give you instant feedback while coding.",
+      "scores": {
+        "accuracy_matched": [
+          "hook",
+          "event",
+          "automatic"
+        ],
+        "accuracy_score": 3,
+        "accuracy_total": 6,
+        "accuracy_pct": 50.0,
+        "completeness_matched": [
+          "edit",
+          "bash"
+        ],
+        "completeness_score": 2,
+        "completeness_total": 6,
+        "completeness_pct": 33.3,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 57,
+        "output_tokens": 639
+      }
+    },
+    {
+      "test_id": "5.3",
+      "category": "Extension Awareness",
+      "condition": "control",
+      "response": "# Best Options for API Conventions\n\n## 1. **System Prompt (Best for consistency)**\nAdd your conventions to the system prompt if you're using Claude via API. This ensures every request includes this context:\n\n```\nYou are a helpful AI assistant that helps with our API development.\n\nOur API conventions:\n- Use camelCase for JSON field names\n- Always include pagination with limit/offset\n- Use ISO 8601 for all dates\n- [... more conventions]\n```\n\n**Pros:** Applies to all conversations, no per-message overhead\n**Cons:** Requires you to manage the system prompt setup\n\n## 2. **Custom Instructions (if using Claude.ai)**\nIf using Claude directly through Claude.ai, the Profile \u2192 Custom Instructions section works similarly\u2014these get included in your conversations.\n\n## 3. **Document Reference in Messages**\nReference a conventions doc in each conversation:\n- \"Here are our API conventions: [link or text]\"\n- Include it in your initial prompt for a task\n\n**Pros:** Explicit and flexible\n**Cons:** Need to include it each time; uses tokens\n\n## 4. **Hybrid Approach (Recommended)**\n- **System prompt:** Core architectural principles\n- **Per-conversation prompt:** Task-specific details from your conventions doc\n\n## Practical Tip\nKeep conventions in a single source of truth (document/wiki) that you can:\n- Paste into system prompts\n- Reference by URL\n- Update without changing multiple places\n\nWhat's your main use case\u2014API design reviews, code generation, documentation?",
+      "scores": {
+        "accuracy_matched": [
+          "always",
+          "convention"
+        ],
+        "accuracy_score": 2,
+        "accuracy_total": 6,
+        "accuracy_pct": 33.3,
+        "completeness_matched": [
+          "reference"
+        ],
+        "completeness_score": 1,
+        "completeness_total": 5,
+        "completeness_pct": 20.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 62,
+        "output_tokens": 348
+      }
+    },
+    {
+      "test_id": "5.4",
+      "category": "Extension Awareness",
+      "condition": "control",
+      "response": "# Creating a PowerPoint with Claude\n\nClaude can help in several practical ways:\n\n## What Claude can do well:\n\n**Content creation**\n- Write summaries and talking points for each slide\n- Draft executive summaries\n- Create bullet points and key messages\n- Suggest data visualizations and chart types\n\n**Structure & strategy**\n- Help outline your presentation flow\n- Suggest which metrics to highlight\n- Recommend slide layouts for different content types\n\n**Supporting materials**\n- Write speaker notes\n- Draft captions and annotations\n- Create executive summaries or handouts\n\n## What Claude can't do directly:\n\n- **Generate the actual PowerPoint file** (Claude can't create .pptx files)\n- Create images or charts\n- Embed graphics or data visualizations\n\n## Best workflow:\n\n1. **Share your data** with Claude (even as text/tables)\n2. **Get structured content** - outlines, text, talking points\n3. **Copy that content** into PowerPoint yourself\n4. **Use design tools** - PowerPoint templates, Canva, or AI image generators for visuals\n\n## Shortcut option:\nSome tools like **Gamma** or **Beautiful.ai** integrate AI and let you create slides more directly, though they have their own limitations.\n\nWhat format is your data in? I can help you structure and write the content right now.",
+      "scores": {
+        "accuracy_matched": [
+          "pptx",
+          "presentation"
+        ],
+        "accuracy_score": 2,
+        "accuracy_total": 6,
+        "accuracy_pct": 33.3,
+        "completeness_matched": [
+          "template"
+        ],
+        "completeness_score": 1,
+        "completeness_total": 5,
+        "completeness_pct": 20.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 38,
+        "output_tokens": 301
+      }
+    },
+    {
+      "test_id": "5.5",
+      "category": "Extension Awareness",
+      "condition": "control",
+      "response": "# Sharing Claude Setups with Your Team\n\nUnfortunately, Claude doesn't have built-in features to export or share configurations across accounts. Here's what you can do:\n\n## What **can't** be shared directly\n- Custom instructions or system prompts\n- Individual chat history or conversation threads\n- Account-level settings\n- API configurations (though API keys themselves aren't shareable)\n\n## What **can** be shared effectively\n\n### 1. **Documentation approach** (most practical)\nCreate a team guide document covering:\n- Your custom code review rules (as specific criteria/checklist)\n- Architecture reference docs (share directly or link to your wiki)\n- Exact prompts you use for code reviews\n- Examples of good Claude interactions for your use case\n- Any formatting conventions you've established\n\nShare via Confluence, GitHub wiki, or Google Docs.\n\n### 2. **For Slack integration + automation**\n- If you're using Claude's API, document your setup code and share it in a private repo\n- Set up your Slack bot once in shared infrastructure (not per-user)\n- Each team member authenticates to the shared bot, not individual instances\n\n### 3. **Standardized prompts**\n- Create prompt templates your team uses consistently\n- Store in a shared location (repo, docs, prompt library tool)\n- Version control them alongside your code\n\n## Best practice workflow\n1. **One person** documents the working setup thoroughly\n2. **Each team member** recreates it following the guide (takes ~15 min)\n3. **Use Claude's custom instructions** to paste in your standard review rules\n4. **Pin the docs** in your team Slack for reference\n\nThis isn't as seamless as a sync button, but it ensures everyone understands *why* the setup exists and can troubleshoot issues independently.\n\nWould the API/bot approach fit your Slack integration better?",
+      "scores": {
+        "accuracy_matched": [],
+        "accuracy_score": 0,
+        "accuracy_total": 6,
+        "accuracy_pct": 0.0,
+        "completeness_matched": [],
+        "completeness_score": 0,
+        "completeness_total": 6,
+        "completeness_pct": 0.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 64,
+        "output_tokens": 416
+      }
+    },
+    {
+      "test_id": "6.1",
+      "category": "Negative (No Change Expected)",
+      "condition": "control",
+      "response": "# Python Function to Sort List of Dictionaries\n\nHere's a comprehensive solution with type hints and error handling:\n\n```python\nfrom typing import List, Dict, Any, Optional\n\ndef sort_dicts(\n    data: List[Dict[str, Any]],\n    key: str,\n    reverse: bool = False,\n    default: Any = None,\n    skip_missing: bool = False\n) -> List[Dict[str, Any]]:\n    \"\"\"\n    Sort a list of dictionaries by a specified key.\n    \n    Args:\n        data: List of dictionaries to sort\n        key: Dictionary key to sort by\n        reverse: If True, sort in descending order (default: False)\n        default: Default value for missing keys (default: None)\n        skip_missing: If True, exclude dicts without the key (default: False)\n    \n    Returns:\n        Sorted list of dictionaries\n    \n    Raises:\n        ValueError: If key doesn't exist and skip_missing is False with no default\n    \n    Examples:\n        >>> data = [{'name': 'Alice', 'age': 30}, {'name': 'Bob', 'age': 25}]\n        >>> sort_dicts(data, 'age')\n        [{'name': 'Bob', 'age': 25}, {'name': 'Alice', 'age': 30}]\n    \"\"\"\n    if not data:\n        return []\n    \n    # Check if all dicts have the key\n    has_key = [key in item for item in data]\n    \n    if not all(has_key):\n        if skip_missing:\n            # Filter out dicts without the key\n            data = [item for item in data if key in item]\n        elif default is None:\n            # Raise error if key not found and no default provided\n            missing_indices = [i for i, has in enumerate(has_key) if not has]\n            raise ValueError(\n                f\"Key '{key}' not found in items at indices: {missing_indices}. \"\n                f\"Provide a default value or set skip_missing=True\"\n            )\n    \n    # Sort with proper handling of missing keys\n    return sorted(\n        data,\n        key=lambda x: x.get(key, default),\n        reverse=reverse\n    )\n\n\n# Alternative: Using a custom comparator with type checking\ndef sort_dicts_typed(\n    data: List[Dict[str, Any]],\n    key: str,\n    reverse: bool = False,\n    default: Optional[Any] = None\n) -> List[Dict[str, Any]]:\n    \"\"\"\n    Sort with additional type checking for comparable values.\n    \"\"\"\n    if not data:\n        return []\n    \n    def get_sort_value(item: Dict[str, Any]) -> Any:\n        value = item.get(key, default)\n        if value is None:\n            return (1, None)  # Sort None values to the end\n        return (0, value)\n    \n    return sorted(data, key=get_sort_value, reverse=reverse)\n```\n\n## Usage Examples\n\n```python\n# Example 1: Basic usage\nstudents = [\n    {'name': 'Alice', 'grade': 85},\n    {'name': 'Bob', 'grade': 92},\n    {'name': 'Charlie', 'grade': 78}\n]\n\nsorted_by_grade = sort_dicts(students, 'grade')\nprint(sorted_by_grade)\n# Output: [{'name': 'Charlie', 'grade': 78}, {'name': 'Alice', 'grade': 85}, {'name': 'Bob', 'grade': 92}]\n\n\n# Example 2: Descending order\nsorted_desc = sort_dicts(students, 'grade', reverse=True)\nprint(sorted_desc)\n# Output: [{'name': 'Bob', 'grade': 92}, {'name': 'Alice', 'grade': 85}, {'name': 'Charlie', 'grade': 78}]\n\n\n# Example 3: Handle missing keys with default\ndata_with_missing = [\n    {'name': 'Alice', 'age': 30},\n    {'name': 'Bob'},  # missing 'age' key\n    {'name': 'Charlie', 'age': 25}\n]\n\nsorted_with_default = sort_dicts(data_with_missing, 'age', default=0)\nprint(sorted_with_default)\n# Output: [{'name': 'Bob'}, {'name': 'Charlie', 'age': 25}, {'name': 'Alice', 'age': 30}]\n\n\n# Example 4: Skip missing keys\nsorted_skip = sort_dicts(data_with_missing, 'age', skip_missing=True)\nprint(sorted_skip)\n# Output: [{'name': 'Charlie', 'age': 25}, {'name': 'Alice', 'age': 30}]\n\n\n# Example 5: Error handling\ntry:\n    sort_dicts(data_with_missing, 'age')  # No default, will raise error\nexcept ValueError as e:\n    print(f\"Error: {e}\")\n\n\n# Example 6: Sorting by multiple keys (advanced)\ndef sort_dicts_multiple(data: List[Dict[str, Any]], keys: List[str]) -> List[Dict[str, Any]]:\n    \"\"\"Sort by multiple keys in priority order.\"\"\"\n    from functools import reduce\n    \n    def sort_by_key(items, key):\n        return sort_dicts(items, key)\n    \n    return reduce(sort_by_key, reversed(keys), data)\n\nemployees = [\n    {'dept': 'Sales', 'name': 'Alice', 'salary': 50000},\n    {'dept': 'IT', 'name': 'Bob', 'salary': 60000},\n    {'dept': 'Sales', 'name': 'Charlie', 'salary': 55000}\n]\n\nsorted_multi = sort_dicts_multiple(employees, ['dept', 'salary'])\nprint(sorted_multi)\n```\n\n## Key Features\n\n| Feature | Description |\n|---------|-------------|\n| **Type Hints** | Full type annotations for parameters and return values |\n| **Error Handling** | Raises `ValueError` if key missing without default |\n| **Default Values** | Handles missing keys gracefully |\n| **Skip Missing** | Option to exclude dicts without the key |\n| **Reverse Sort** | Support for descending order |\n| **None Handling** | Special handling for None values |\n\nThis implementation is production-ready and handles edge cases effectively!",
+      "scores": {
+        "accuracy_matched": [
+          "def ",
+          "sorted",
+          "key",
+          "lambda"
+        ],
+        "accuracy_score": 4,
+        "accuracy_total": 6,
+        "accuracy_pct": 66.7,
+        "completeness_matched": [
+          "type hint",
+          "typing",
+          "optional",
+          "default",
+          "reverse"
+        ],
+        "completeness_score": 5,
+        "completeness_total": 5,
+        "completeness_pct": 100.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 47,
+        "output_tokens": 1579
+      }
+    },
+    {
+      "test_id": "6.2",
+      "category": "Negative (No Change Expected)",
+      "condition": "control",
+      "response": "# TCP vs UDP\n\n## Key Differences\n\n| Feature | TCP | UDP |\n|---------|-----|-----|\n| **Connection** | Connection-oriented | Connectionless |\n| **Reliability** | Guaranteed delivery | No guarantees |\n| **Ordering** | Data arrives in order | May arrive out of order |\n| **Speed** | Slower (more overhead) | Faster (minimal overhead) |\n| **Error checking** | Extensive | Basic |\n| **Flow control** | Yes | No |\n\n## TCP (Transmission Control Protocol)\n\n**Best for:** Applications where accuracy matters more than speed\n\n**Use cases:**\n- **Email** (SMTP, POP3, IMAP)\n- **Web browsing** (HTTP/HTTPS)\n- **File transfers** (FTP, SFTP)\n- **Remote access** (SSH, Telnet)\n- **Messaging apps** (WhatsApp, iMessage over WiFi)\n\nTCP establishes a connection, ensures every packet arrives correctly, and resends lost data automatically.\n\n## UDP (User Datagram Protocol)\n\n**Best for:** Applications where speed matters more than perfect accuracy\n\n**Use cases:**\n- **Video/audio streaming** (Netflix, YouTube, Zoom)\n- **Online gaming** (real-time multiplayer)\n- **VoIP** (Skype, Discord voice)\n- **DNS queries**\n- **Live sports broadcasts**\n\nUDP sends data quickly without waiting for confirmation. Losing a few packets is acceptable if it keeps the experience smooth.\n\n## Quick Summary\n\n**Choose TCP** when you can't afford to lose data (financial transactions, documents).\n\n**Choose UDP** when speed is critical and minor data loss is tolerable (video calls, games).",
+      "scores": {
+        "accuracy_matched": [
+          "connection",
+          "packet",
+          "order",
+          "stream"
+        ],
+        "accuracy_score": 4,
+        "accuracy_total": 5,
+        "accuracy_pct": 80.0,
+        "completeness_matched": [
+          "overhead",
+          "gaming",
+          "video"
+        ],
+        "completeness_score": 3,
+        "completeness_total": 5,
+        "completeness_pct": 60.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 30,
+        "output_tokens": 393
+      }
+    },
+    {
+      "test_id": "6.3",
+      "category": "Negative (No Change Expected)",
+      "condition": "control",
+      "response": "# Preventing Unnecessary Re-renders in React\n\nYou have several options depending on your React setup:\n\n## 1. **React.memo** (Functional Components)\n\nWraps your component to skip re-renders if props haven't changed:\n\n```jsx\nconst MyComponent = React.memo(({ name, age }) => {\n  return <div>{name} - {age}</div>;\n});\n```\n\n**With custom comparison:**\n```jsx\nconst MyComponent = React.memo(\n  ({ name, age }) => <div>{name} - {age}</div>,\n  (prevProps, nextProps) => {\n    return prevProps.name === nextProps.name; // Only compare name\n  }\n);\n```\n\n## 2. **useMemo Hook**\n\nMemoize computed values:\n\n```jsx\nfunction Parent() {\n  const memoizedValue = useMemo(() => {\n    return expensiveCalculation(a, b);\n  }, [a, b]); // Only recalculates when a or b change\n\n  return <Child value={memoizedValue} />;\n}\n```\n\n## 3. **useCallback Hook**\n\nMemoize function references:\n\n```jsx\nfunction Parent() {\n  const handleClick = useCallback(() => {\n    doSomething(id);\n  }, [id]); // Function reference stays same unless id changes\n\n  return <Child onClick={handleClick} />;\n}\n```\n\n## 4. **PureComponent** (Class Components)\n\nAutomatically does shallow prop/state comparison:\n\n```jsx\nclass MyComponent extends React.PureComponent {\n  render() {\n    return <div>{this.props.name}</div>;\n  }\n}\n```\n\n## When to Use Each\n\n| Solution | Use Case |\n|----------|----------|\n| `React.memo` | Expensive render logic, props rarely change |\n| `useCallback` | Passing functions as props to memoized children |\n| `useMemo` | Expensive calculations |\n| `PureComponent` | Legacy class components |\n\n## \u26a0\ufe0f Common Pitfall\n\nObjects and functions created inline always fail memo comparisons:\n\n```jsx\n// \u274c Bad - new object every render\n<Child config={{ key: 'value' }} />\n\n// \u2705 Good\nconst config = useMemo(() => ({ key: 'value' }), []);\n<Child config={config} />\n```\n\nWhat's your specific use case? That would help narrow down the best solution.",
+      "scores": {
+        "accuracy_matched": [
+          "memo",
+          "usememo",
+          "usecallback",
+          "react.memo",
+          "render"
+        ],
+        "accuracy_score": 5,
+        "accuracy_total": 5,
+        "accuracy_pct": 100.0,
+        "completeness_matched": [
+          "reference",
+          "shallow",
+          "comparison"
+        ],
+        "completeness_score": 3,
+        "completeness_total": 5,
+        "completeness_pct": 60.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 40,
+        "output_tokens": 582
+      }
+    },
+    {
+      "test_id": "1.1",
+      "category": "Architecture Decisions",
+      "condition": "treatment",
+      "response": "# Document Analysis Pipeline Architecture\n\nFor a small team processing 100-page PDFs, here's a practical architecture that balances simplicity with capability:\n\n## Core Design\n\n```\nPDF Upload \u2192 Files API \u2192 Claude Processing \u2192 Structured Output \u2192 Storage\n                              \u2193\n                        Knowledge Base Lookup\n                              \u2193\n                        Formatted Summary\n```\n\n## Why This Approach\n\n**Files API** (not re-uploading per request):\n- Upload PDFs once, reference by ID across multiple requests\n- 500MB per file limit (handles your 100-page PDFs easily)\n- Reduces token waste and latency\n\n**Claude for analysis** (Opus 4.6 or Sonnet 4.5):\n- Single-pass extraction + reasoning in one call\n- 200K context handles complex documents with knowledge base context\n- Structured outputs guarantee JSON schema compliance\n\n**Batch processing** (for cost):\n- If you have volume, batch requests at 50% cost\n- Process overnight or during off-peak hours\n\n## Implementation Pattern\n\n```javascript\n// 1. Upload PDF once\nconst fileResponse = await client.beta.files.upload(\n  { file: fs.createReadStream('document.pdf') },\n  { headers: { 'anthropic-beta': 'files-api-2025-04-14' } }\n);\nconst fileId = fileResponse.id;\n\n// 2. Process with knowledge base context\nconst response = await client.messages.create({\n  model: 'claude-opus-4-6',\n  max_tokens: 4096,\n  messages: [\n    {\n      role: 'user',\n      content: [\n        {\n          type: 'text',\n          text: `Extract key information from this document and cross-reference with our knowledge base.\n          \nKnowledge Base Context:\n${knowledgeBaseContent}\n\nReturn structured JSON with: entities, key_facts, cross_references, confidence_scores.`\n        },\n        {\n          type: 'document',\n          source: {\n            type: 'file',\n            file_id: fileId\n          }\n        }\n      ]\n    }\n  ],\n  output_config: {\n    format: 'json',\n    schema: {\n      type: 'object',\n      properties: {\n        entities: { type: 'array', items: { type: 'object' } },\n        key_facts: { type: 'array', items: { type: 'string' } },\n        cross_references: { type: 'array', items: { type: 'object' } },\n        summary: { type: 'string' }\n      },\n      required: ['entities', 'key_facts', 'summary']\n    }\n  }\n});\n```\n\n## Knowledge Base Integration\n\nKeep it straightforward:\n\n**Option A: Include in system prompt** (< 50K tokens)\n- Best for: Small, frequently-used reference data\n- Include domain terminology, entity mappings, standard classifications\n\n**Option B: Dynamic lookup in user message** (current request)\n- Best for: Database queries based on document content\n- First pass: extract entity names \u2192 query KB \u2192 second pass: enrich analysis\n  \n**Option C: Prompt caching** (if KB is static)\n- Cache knowledge base context for 5 minutes (or 1 hour on API)\n- Reuse across multiple document analyses\n- Significant savings if processing batches\n\n```javascript\n// Prompt caching example\nmessages: [\n  {\n    role: 'user',\n    content: [\n      { type: 'text', text: knowledgeBase, cache_control: { type: 'ephemeral' } },\n      { type: 'text', text: 'Analyze this document...' },\n      { type: 'document', source: { type: 'file', file_id: fileId } }\n    ]\n  }\n]\n```\n\n## Simple Workflow\n\n1. **Ingest**: User uploads PDF \u2192 Files API stores it\n2. **Analyze**: Claude extracts + cross-references in one pass\n3. **Structure**: Guaranteed JSON output via `output_config`\n4. **Store**: Save to your database (PostgreSQL, MongoDB, etc.)\n5. **Access**: Query results via your app\n\n## Team Size Recommendations\n\nFor a **small team**:\n- Start with **Sonnet 4.5** (faster, cheaper, handles most documents)\n- Use **Opus 4.6** only for complex analyses needing deeper reasoning\n- Structured outputs eliminate post-processing validation\n- Files API + caching reduce repetitive API costs significantly\n\n## What NOT to Overcomplicate\n\n\u274c **Multi-stage pipelines** (extract \u2192 validate \u2192 enrich \u2192 summarize) \u2014 Claude can do this in one pass  \n\u274c **Custom embedding/vector search** \u2014 KB lookup in the prompt is simpler for small teams  \n\u274c **Streaming for summaries** \u2014 structured outputs are better for downstream systems  \n\u274c **Real-time processing** \u2014 batch at night, deliver summaries in morning (50% cost savings)\n\n## Quick Wins\n\n- **Validation**: Use `strict: true` on structured outputs to catch schema violations\n- **Filtering**: Have Claude mark low-confidence findings; manually review separately\n- **Iterating**: Test on 5 sample documents first; refine prompt before full batch\n- **Monitoring**: Log extracted entities + summaries; audit misses quarterly\n\n---\n\n**Start here**: Pick 3 representative PDFs, write your extraction schema, test with Sonnet 4.5. Once you know what works, batch the rest. You'll learn more from running this once than from perfect architecture planning.",
+      "scores": {
+        "accuracy_matched": [
+          "beta",
+          "files api",
+          "cost"
+        ],
+        "accuracy_score": 3,
+        "accuracy_total": 8,
+        "accuracy_pct": 37.5,
+        "completeness_matched": [
+          "streaming",
+          "prompt caching",
+          "batch"
+        ],
+        "completeness_score": 3,
+        "completeness_total": 6,
+        "completeness_pct": 50.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3934,
+        "output_tokens": 1320
+      }
+    },
+    {
+      "test_id": "1.2",
+      "category": "Architecture Decisions",
+      "condition": "treatment",
+      "response": "# QA System Architecture for AI-Generated Content\n\nThis is a great use case for a **multi-agent system** using Claude's Agent SDK. Here's how I'd structure it:\n\n## Architecture Overview\n\n```\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502         Content Submission (from your system)            \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n                       \u2502\n        \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n        \u2502                             \u2502\n   \u250c\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510          \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n   \u2502 Router Agent \u2502          \u2502 Content Storage \u2502\n   \u2502 (orchestrates)          \u2502 (Files API)     \u2502\n   \u2514\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518          \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n        \u2502\n        \u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n        \u2502                     \u2502                  \u2502              \u2502\n   \u250c\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2510      \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2510      \u250c\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2510    \u250c\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2510\n   \u2502 Accuracy  \u2502      \u2502 Tone &    \u2502      \u2502 Style    \u2502    \u2502 Summary  \u2502\n   \u2502 Reviewer  \u2502      \u2502 Compliance\u2502      \u2502 Guide    \u2502    \u2502 Agent    \u2502\n   \u2502 Subagent  \u2502      \u2502 Subagent  \u2502      \u2502 Subagent \u2502    \u2502          \u2502\n   \u2514\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2518      \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2518      \u2514\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2518    \u2514\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2518\n        \u2502                    \u2502                 \u2502              \u2502\n        \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n                             \u2502\n                    \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                    \u2502 Decision Engine \u2502\n                    \u2502 (pass/flag/fail)\u2502\n                    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n                             \u2502\n                    \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                    \u2502 Customer Delivery\u2502\n                    \u2502 or Review Queue  \u2502\n                    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n```\n\n## Implementation Strategy\n\n### 1. **Router Agent** (Main Orchestrator)\nYour entry point that coordinates the review process:\n\n```python\nfrom anthropic.ext.agents import Agent\n\nrouter = Agent(\n    model=\"claude-opus-4-6\",\n    name=\"QA Router\",\n    instructions=\"\"\"You are the QA orchestrator. For each content submission:\n1. Parse the content and metadata\n2. Dispatch to appropriate specialist agents\n3. Collect their verdicts\n4. Make a final pass/flag/fail decision\n5. Generate a report with specific feedback\n\nCriteria for FAIL: accuracy issues or compliance violations\nCriteria for FLAG: tone concerns or style inconsistencies needing review\nCriteria for PASS: meets all standards\"\"\",\n    tools=[/* see below */]\n)\n```\n\n### 2. **Specialist Subagents**\n\nEach subagent focuses on one dimension. They run in **isolated context** (clean slate, faster):\n\n```python\naccuracy_agent = Agent(\n    model=\"claude-sonnet-4-5-20250929\",\n    name=\"Accuracy Checker\",\n    instructions=\"\"\"Review content for factual accuracy:\n- Check claims against provided sources\n- Flag unsupported assertions\n- Identify logical inconsistencies\n- Rate confidence: HIGH/MEDIUM/LOW\n\nReturn JSON: {\n  \"issues\": [{\"claim\": \"...\", \"problem\": \"...\", \"severity\": \"critical|warning\"}],\n  \"accuracy_score\": 0-100,\n  \"verdict\": \"pass|flag|fail\"\n}\"\"\",\n)\n\ntone_agent = Agent(\n    model=\"claude-sonnet-4-5-20250929\",\n    name=\"Tone & Compliance Checker\",\n    instructions=\"\"\"Review for tone, voice consistency, and compliance:\n- Does it match our brand voice? (formal/friendly/technical)\n- Any regulatory/legal concerns?\n- Appropriate for target audience?\n- Check against provided compliance checklist\n\nReturn JSON: {\n  \"tone_analysis\": {\"matches_brand\": bool, \"issues\": [...]},\n  \"compliance_checks\": {\"passed\": [...], \"flagged\": [...]},\n  \"verdict\": \"pass|flag|fail\"\n}\"\"\",\n)\n\nstyle_agent = Agent(\n    model=\"claude-sonnet-4-5-20250929\",\n    name=\"Style Guide Validator\",\n    instructions=\"\"\"Check against our style guide (loaded below):\n- Grammar and punctuation rules\n- Terminology consistency\n- Formatting requirements\n- Structure/section requirements\n\nReturn JSON: {\n  \"violations\": [{\"rule\": \"...\", \"found\": \"...\", \"fix\": \"...\"}],\n  \"style_score\": 0-100,\n  \"verdict\": \"pass|flag|fail\"\n}\"\"\",\n)\n```\n\n### 3. **Tools Integration**\n\n```python\n# Files API for persistent reference materials\nstyle_guide_file = client.beta.files.upload(\n    file=open(\"style-guide.pdf\", \"rb\"),\n    betas=[\"files-api-2025-04-14\"]\n)\n\ncompliance_checklist_file = client.beta.files.upload(\n    file=open(\"compliance-checklist.md\", \"rb\"),\n    betas=[\"files-api-2025-04-14\"]\n)\n\n# MCP for external data (fact-checking sources, regulatory databases)\nmcp_servers = {\n    \"fact_check\": {\n        \"url\": \"mcp://your-fact-check-db\",\n        \"tools\": [\"lookup_claim\", \"verify_statistic\"]\n    },\n    \"compliance\": {\n        \"url\": \"mcp://your-compliance-db\", \n        \"tools\": [\"check_regulations\", \"audit_trail\"]\n    }\n}\n```\n\n### 4. **Decision Engine Logic**\n\n```python\ndef make_qa_decision(router_verdict, specialist_verdicts):\n    \"\"\"\n    FAIL (hard stop):\n    - Any accuracy verdict == fail\n    - Any compliance check fails\n    \n    FLAG (manual review):\n    - Any specialist verdict == flag\n    - Multiple warnings across agents\n    - Confidence scores below threshold\n    \n    PASS (auto-deliver):\n    - All verdicts pass\n    - No flags\n    - All scores > 85\n    \"\"\"\n    \n    accuracy_v, tone_v, style_v = specialist_verdicts\n    \n    if any(v == \"fail\" for v in [accuracy_v, tone_v, style_v]):\n        return \"FAIL\"\n    \n    if any(v == \"flag\" for v in [accuracy_v, tone_v, style_v]):\n        return \"FLAG\"\n    \n    return \"PASS\"\n```\n\n## How to Use It\n\n```python\ndef review_content(content: str, metadata: dict) -> dict:\n    \"\"\"\n    Args:\n        content: The AI-generated text to review\n        metadata: {source_type, target_audience, compliance_reqs, sources}\n    \n    Returns:\n        {\n            \"decision\": \"PASS|FLAG|FAIL\",\n            \"verdicts\": {accuracy, tone, style},\n            \"issues\": [...],\n            \"report\": \"...\",\n            \"recommended_edits\": [...]\n        }\n    \"\"\"\n    \n    # Router coordinates the review\n    result = router.query(f\"\"\"\n    Review this content for QA:\n    \n    CONTENT:\n    {content}\n    \n    METADATA:\n    {json.dumps(metadata)}\n    \n    Use specialist agents and provide:\n    1. Individual verdicts from each reviewer\n    2. Consolidated decision\n    3. Specific feedback for improvement\n    \"\"\")\n    \n    return parse_result(result)\n```\n\n## Key Advantages of This Approach\n\n| Aspect | Benefit |\n|--------|---------|\n| **Isolation** | Each agent has fresh context \u2192 accurate, focused reviews without crosstalk |\n| **Scalability** | Run multiple reviews in parallel; agents are stateless |\n| **Auditability** | Each specialist's reasoning is logged separately; easy to understand decisions |\n| **Extensibility** | Add new agents (SEO checker, accessibility reviewer) without touching existing ones |\n| **Cost** | Subagents are Sonnet 4.5 (cheaper); only router is Opus; parallel execution saves tokens |\n| **Reference materials** | Files API means style guide/compliance docs load once, reused across",
+      "scores": {
+        "accuracy_matched": [
+          "agent sdk",
+          "subagent",
+          "sonnet",
+          "opus"
+        ],
+        "accuracy_score": 4,
+        "accuracy_total": 7,
+        "accuracy_pct": 57.1,
+        "completeness_matched": [
+          "cost",
+          "parallel"
+        ],
+        "completeness_score": 2,
+        "completeness_total": 5,
+        "completeness_pct": 40.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3920,
+        "output_tokens": 2048
+      }
+    },
+    {
+      "test_id": "1.3",
+      "category": "Architecture Decisions",
+      "condition": "treatment",
+      "response": "# Simplest Claude Integration for Next.js\n\nHere's the most straightforward approach:\n\n## 1. **Use the Anthropic SDK with streaming** (5 minutes)\n\n```bash\nnpm install @anthropic-ai/sdk\n```\n\nCreate an API route (`app/api/chat/route.ts`):\n\n```typescript\nimport Anthropic from \"@anthropic-ai/sdk\";\n\nconst client = new Anthropic();\n\nexport async function POST(req: Request) {\n  const { messages } = await req.json();\n\n  const stream = await client.messages.stream({\n    model: \"claude-opus-4-6\",\n    max_tokens: 1024,\n    system: \"You are a helpful assistant analyzing user data.\",\n    messages,\n  });\n\n  // Return a ReadableStream for real-time streaming\n  return new Response(stream.toReadableStream());\n}\n```\n\n## 2. **Wire it up on the client** (React component)\n\n```typescript\n\"use client\";\n\nimport { useState } from \"react\";\n\nexport default function Chat() {\n  const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);\n  const [input, setInput] = useState(\"\");\n  const [loading, setLoading] = useState(false);\n\n  const handleSubmit = async (e: React.FormEvent) => {\n    e.preventDefault();\n    \n    const newMessages = [...messages, { role: \"user\", content: input }];\n    setMessages(newMessages);\n    setInput(\"\");\n    setLoading(true);\n\n    const response = await fetch(\"/api/chat\", {\n      method: \"POST\",\n      body: JSON.stringify({ messages: newMessages }),\n    });\n\n    if (!response.body) return;\n\n    let assistantMessage = \"\";\n    const reader = response.body.getReader();\n    const decoder = new TextDecoder();\n\n    try {\n      while (true) {\n        const { done, value } = await reader.read();\n        if (done) break;\n\n        const chunk = decoder.decode(value);\n        // Parse Server-Sent Events (SSE) format\n        const lines = chunk.split(\"\\n\");\n        for (const line of lines) {\n          if (line.startsWith(\"data: \")) {\n            try {\n              const event = JSON.parse(line.slice(6));\n              if (event.type === \"content_block_delta\" && event.delta?.text) {\n                assistantMessage += event.delta.text;\n              }\n            } catch (e) {\n              // Skip malformed JSON\n            }\n          }\n        }\n      }\n    } finally {\n      reader.releaseLock();\n    }\n\n    setMessages([...newMessages, { role: \"assistant\", content: assistantMessage }]);\n    setLoading(false);\n  };\n\n  return (\n    <div className=\"p-4 max-w-2xl mx-auto\">\n      <div className=\"space-y-4 mb-4\">\n        {messages.map((msg, i) => (\n          <div\n            key={i}\n            className={`p-3 rounded ${\n              msg.role === \"user\" ? \"bg-blue-100\" : \"bg-gray-100\"\n            }`}\n          >\n            {msg.content}\n          </div>\n        ))}\n      </div>\n      <form onSubmit={handleSubmit} className=\"flex gap-2\">\n        <input\n          type=\"text\"\n          value={input}\n          onChange={(e) => setInput(e.target.value)}\n          placeholder=\"Ask about your data...\"\n          className=\"flex-1 p-2 border rounded\"\n          disabled={loading}\n        />\n        <button\n          type=\"submit\"\n          disabled={loading}\n          className=\"px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50\"\n        >\n          {loading ? \"...\" : \"Send\"}\n        </button>\n      </form>\n    </div>\n  );\n}\n```\n\n## 3. **Set your API key**\n\n```bash\nexport ANTHROPIC_API_KEY=\"sk-ant-...\"\n```\n\n---\n\n## What Makes This Simple\n\n\u2705 **No complex setup** \u2014 just the SDK  \n\u2705 **Real-time streaming** \u2014 built-in via `.stream()`  \n\u2705 **Server-side** \u2014 keeps API key secure  \n\u2705 **Works immediately** \u2014 ~50 lines of code  \n\n---\n\n## When to Add Complexity\n\nConsider these only if you need them:\n\n| Need | Solution |\n|------|----------|\n| **More sophisticated Q&A** (vector search, RAG) | Add a vector DB (Pinecone, Supabase pgvector) + embed user docs before streaming |\n| **Longer context or complex reasoning** | Switch to `claude-opus-4-6` with `effort: \"high\"` (see capability reference) |\n| **Production resilience** | Add error handling, rate limiting, prompt caching (5-min), message validation |\n| **Persistent conversations** | Store messages in a database instead of client state |\n| **User-specific data isolation** | Add auth + per-user database queries before sending to Claude |\n\nFor now, this gets you to \"real-time AI responses\" in a single session. **Start here, add features based on what users actually need.**",
+      "scores": {
+        "accuracy_matched": [
+          "streaming",
+          "sdk"
+        ],
+        "accuracy_score": 2,
+        "accuracy_total": 5,
+        "accuracy_pct": 40.0,
+        "completeness_matched": [
+          "server-sent events"
+        ],
+        "completeness_score": 1,
+        "completeness_total": 5,
+        "completeness_pct": 20.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3920,
+        "output_tokens": 1277
+      }
+    },
+    {
+      "test_id": "2.1",
+      "category": "Can Claude Do X",
+      "condition": "treatment",
+      "response": "Yes, you have a few good options depending on your use case:\n\n## **Memory Tool (Recommended for most cases)**\n\nThe **Memory tool** is designed exactly for this. It lets Claude persist information across conversations with a simple store/retrieve interface.\n\n**How it works:**\n- Claude can create, view, update, and delete memory entries during conversations\n- Memories persist across separate conversations\n- You retrieve them by ID or search\n\n**Setup** (requires beta header `context-management-2025-06-27`):\n```json\n{\n  \"tools\": [\n    {\n      \"type\": \"memory_20250818\",\n      \"name\": \"memory\",\n      \"commands\": [\"view\", \"create\", \"str_replace\", \"insert\", \"delete\", \"rename\"]\n    }\n  ]\n}\n```\n\n**Example workflow:**\n1. User tells Claude: \"I'm starting a redesign project for acme-dashboard\"\n2. Claude creates a memory: `{project: \"acme-dashboard\", status: \"requirements phase\", stakeholders: [...]}`\n3. Next conversation: Claude retrieves that memory and continues with full context\n4. Claude updates the memory as work progresses\n\n**Best for:**\n- Projects with ongoing work phases\n- Maintaining stakeholder lists, decisions, constraints\n- Evolving requirements or feedback loops\n\n---\n\n## **1M Token Context Window (For single very long sessions)**\n\nIf you're building sessions that stay open for extended periods:\n- All current models support **1M token context** (beta, requires tier 3+)\n- Header: `context-1m-2025-08-07`\n- Claude keeps everything in one conversation\n\n**Best for:** \n- Long working sessions where you don't need persistence between *separate* conversations\n- When you want to leverage extremely long context without API calls\n\n---\n\n## **Compaction API (For conversation summarization)**\n\nIf you want to compress earlier parts of a conversation before context gets full:\n- Server-side automatic summarization\n- Keeps recent context sharp, compacts old turns\n- Useful when conversations naturally grow very long\n\n**Best for:**\n- Very long single conversations where you want to stay in context limits\n\n---\n\n## **What I'd recommend for your tool:**\n\n1. **Use Memory tool** as the primary mechanism \u2014 it's lightweight and exactly designed for cross-conversation persistence\n2. **Combine with system prompt instructions** that tell Claude when to save/retrieve memory (e.g., \"At the start of each conversation, retrieve project memories. When requirements change, update them.\")\n3. **Optional: store supplementary data** elsewhere (database, files) for things like code artifacts, documents, or design files that Claude references\n\nThe Memory tool handles the cognitive state; your backend handles the artifacts.\n\n**One caveat:** The Memory tool requires client-side persistence \u2014 you need to maintain the memory store on your end. If you need a fully managed solution, you could alternatively:\n- Keep entire conversation threads in a database and load recent messages as context\n- Use the Files API to upload project documents Claude references\n\nWant help implementing any of these patterns, or do you have a specific project structure in mind?",
+      "scores": {
+        "accuracy_matched": [
+          "memory tool",
+          "memory_20250818",
+          "beta",
+          "cross-conversation"
+        ],
+        "accuracy_score": 4,
+        "accuracy_total": 5,
+        "accuracy_pct": 80.0,
+        "completeness_matched": [
+          "view",
+          "create",
+          "str_replace",
+          "client-side",
+          "context-management-2025-06-27"
+        ],
+        "completeness_score": 5,
+        "completeness_total": 5,
+        "completeness_pct": 100.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3911,
+        "output_tokens": 703
+      }
+    },
+    {
+      "test_id": "2.2",
+      "category": "Can Claude Do X",
+      "condition": "treatment",
+      "response": "Yes\u2014you have a couple of solid options here:\n\n## 1. **Tool Search (Recommended for your case)**\n\nTool Search dynamically discovers tools via regex instead of loading all definitions upfront. It auto-activates when MCP tools exceed ~10% of your context window, which sounds like exactly where you are.\n\n**How it works:**\n- You provide a regex pattern or search strategy\n- Claude searches tool descriptions on-demand when it needs something\n- Only matching tools get loaded into context for that request\n- Saves massive overhead when you have hundreds of tools but only use a fraction per request\n\nThis is built-in and GA\u2014no special header needed. The model intelligently decides when a task needs tool search vs. direct tool use.\n\n**Trade-off:** Slightly higher latency on first tool discovery (extra round-trip to search), but offset by not carrying 500 tool definitions through every message.\n\n## 2. **MCP Connector with Selective Tool Loading**\n\nIf you're using the MCP Connector (beta, header: `mcp-client-2025-11-20`), you can configure per-tool enable/disable and deferred loading:\n\n```json\n{\n  \"mcp_servers\": {\n    \"my-server\": {\n      \"tools\": {\n        \"tool-name\": {\n          \"enabled\": true,\n          \"defer_loading\": true  // Loads definition only on first use\n        }\n      }\n    }\n  }\n}\n```\n\nThis lets you keep tools *available* without *present* in context until Claude actually reaches for them.\n\n---\n\n## Which to use:\n\n| Scenario | Use |\n|----------|-----|\n| You have 100s of tools, don't know which ones a task will need | **Tool Search** \u2014 auto-discovery, minimal setup |\n| You know your tool categories but want selective availability | **MCP defer_loading** \u2014 fine-grained control per tool |\n| You want both: discovery + explicit availability | **Combine them** \u2014 Tool Search finds tools, MCP defers their loading |\n\n**Pro tip:** If you're on Sonnet 4.5 or Opus 4+, Tool Search will auto-activate once you hit the threshold\u2014you don't need to explicitly enable it. Just provide meaningful tool descriptions (3-4 sentences each) so the search has good material to work with.\n\nWhat's your typical request pattern\u2014are you using the same 20-30 tools repeatedly, or does it vary wildly per request?",
+      "scores": {
+        "accuracy_matched": [
+          "tool search",
+          "dynamic",
+          "discovery",
+          "regex",
+          "auto-activate",
+          "10%"
+        ],
+        "accuracy_score": 6,
+        "accuracy_total": 6,
+        "accuracy_pct": 100.0,
+        "completeness_matched": [
+          "mcp connector",
+          "defer_loading",
+          "context"
+        ],
+        "completeness_score": 3,
+        "completeness_total": 4,
+        "completeness_pct": 75.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3913,
+        "output_tokens": 565
+      }
+    },
+    {
+      "test_id": "2.3",
+      "category": "Can Claude Do X",
+      "condition": "treatment",
+      "response": "Yes, absolutely! This is possible through the **Computer Use tool** available via the API. Here's what you need to know:\n\n## How It Works\n\nThe Computer Use tool lets Claude:\n- **Take screenshots** to see the current state of the browser/screen\n- **Control the mouse** (move, click, drag)\n- **Type on the keyboard** (fill forms, enter data)\n- **Interact with web forms** \u2014 filling fields, selecting dropdowns, clicking buttons, etc.\n\nThis creates a feedback loop where Claude sees what it did, adapts, and continues until the task is complete.\n\n## API Implementation\n\nYou'll use the `computer_use` tool in your API requests. The exact tool version depends on your model:\n\n- **Opus 4.5/4.6**: `computer_20251124` (includes zoom control for better accuracy on complex layouts)\n- **Other models**: `computer_20250124`\n\nHere's a minimal example:\n\n```python\nimport anthropic\n\nclient = anthropic.Anthropic()\n\nresponse = client.messages.create(\n    model=\"claude-opus-4-6\",\n    max_tokens=4096,\n    tools=[\n        {\n            \"type\": \"computer_use\",\n            \"name\": \"computer\",\n        }\n    ],\n    messages=[\n        {\n            \"role\": \"user\",\n            \"content\": \"Fill out the contact form at example.com with:\\n- Name: John Doe\\n- Email: john@example.com\\n- Message: 'Hello, this is a test'\"\n        }\n    ]\n)\n\n# Claude will iteratively take screenshots, interact with the form, \n# and report back on success/failure\nprint(response.content)\n```\n\n## Best Practices for Form Filling\n\n1. **Clear, specific instructions**: Tell Claude exactly what data to enter and where\n2. **Expect multiple turns**: Form filling usually requires several screenshot \u2192 action cycles\n3. **Error handling**: Claude can detect if a form submission failed and retry\n4. **Credentials**: For sensitive data, use environment variables or secure vaults rather than hardcoding\n5. **Timeouts**: Set reasonable `max_tokens` (4096-8192 typically works well for multi-step tasks)\n\n## Important Limitations\n\n- **Session persistence**: Each API request is stateless \u2014 you'll need to maintain browser state across requests if needed\n- **Interactive elements**: Works best with standard HTML forms; some heavily JavaScript-based interfaces may be trickier\n- **Speed**: Not as fast as programmatic APIs or Selenium \u2014 better for one-off tasks than high-volume automation\n- **Captchas/MFA**: Will fail on these (expected behavior)\n\n## Alternative Consideration\n\nIf you're doing **high-volume, repetitive form filling**, you might also explore:\n- **Web Fetch tool** (simpler for JSON APIs behind the forms)\n- **Selenium/Puppeteer** (more efficient for pure automation, though less intelligent)\n\nComputer Use shines when you need Claude's intelligence to handle varying form layouts or make decisions mid-task.\n\nFor detailed parameter documentation and code examples, see `references/tool-types.md` in the API documentation.",
+      "scores": {
+        "accuracy_matched": [
+          "computer use",
+          "computer_20251124",
+          "computer_20250124",
+          "screenshot",
+          "mouse",
+          "keyboard"
+        ],
+        "accuracy_score": 6,
+        "accuracy_total": 6,
+        "accuracy_pct": 100.0,
+        "completeness_matched": [
+          "zoom",
+          "browser"
+        ],
+        "completeness_score": 2,
+        "completeness_total": 6,
+        "completeness_pct": 33.3,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3902,
+        "output_tokens": 724
+      }
+    },
+    {
+      "test_id": "3.1",
+      "category": "Implementation Guidance",
+      "condition": "treatment",
+      "response": "# Controlling Thinking in Opus 4.6\n\nOpus 4.6 has two complementary controls for thinking depth:\n\n## 1. **Adaptive Thinking** (Automatic, Recommended)\n\nUse the `thinking` parameter with adaptive mode \u2014 Claude dynamically decides when and how much to think based on task complexity:\n\n```json\n{\n  \"model\": \"claude-opus-4-6\",\n  \"messages\": [...],\n  \"thinking\": {\n    \"type\": \"adaptive\"\n  }\n}\n```\n\nThis is the default post-training behavior and automatically enables interleaved thinking (thinking blocks between tool calls). It's ideal when you want Claude to self-regulate \u2014 complex queries get more thinking, simple lookups get less.\n\n## 2. **Effort Parameter** (Fine-grained Control)\n\nPair adaptive thinking with the `effort` parameter for explicit control over thoroughness vs. token usage:\n\n```json\n{\n  \"model\": \"claude-opus-4-6\",\n  \"messages\": [...],\n  \"thinking\": {\n    \"type\": \"adaptive\"\n  },\n  \"effort\": \"low\"  // or \"medium\", \"high\", \"max\"\n}\n```\n\n### Effort Levels:\n\n| Level | Use Case | When to Choose |\n|-------|----------|----------------|\n| **low** | Simple lookups, straightforward answers | Quick factual questions, simple formatting |\n| **medium** | Balanced tasks | Default for most work; moderate analysis |\n| **high** | Complex analysis, debugging | Multi-step reasoning, code review, strategy |\n| **max** | Deepest reasoning (Opus 4.6 only) | Novel problems, research, high-stakes decisions |\n\n## Practical Examples\n\n**Simple lookup with minimal thinking:**\n```json\n{\n  \"model\": \"claude-opus-4-6\",\n  \"messages\": [{\"role\": \"user\", \"content\": \"What's the capital of France?\"}],\n  \"thinking\": {\"type\": \"adaptive\"},\n  \"effort\": \"low\"\n}\n```\n\n**Complex analysis with maximum reasoning:**\n```json\n{\n  \"model\": \"claude-opus-4-6\",\n  \"messages\": [{\"role\": \"user\", \"content\": \"Debug this production issue...\"}],\n  \"thinking\": {\"type\": \"adaptive\"},\n  \"effort\": \"max\"\n}\n```\n\n**Balanced default (omit effort for medium):**\n```json\n{\n  \"model\": \"claude-opus-4-6\",\n  \"messages\": [{\"role\": \"user\", \"content\": \"Analyze this report...\"}],\n  \"thinking\": {\"type\": \"adaptive\"}\n  // effort defaults to \"medium\" if omitted\n}\n```\n\n## Key Points\n\n- **No budget_tokens**: The old `budget_tokens` parameter is deprecated on Opus 4.6. Use `effort` instead.\n- **Streaming large outputs**: If you set `max_tokens` high (to use Opus 4.6's full 128K output), stream the response to avoid timeouts.\n- **Cost implications**: Higher effort = more thinking tokens. `max` will be the most expensive but produce the highest-quality reasoning for hard problems.\n- **Interleaved thinking**: Adaptive mode automatically enables thinking blocks between tool calls \u2014 useful for multi-step workflows.\n\nStart with `\"low\"` for simple tasks and increase `effort` only when you notice Claude could benefit from deeper reasoning. This keeps costs down while maintaining quality.",
+      "scores": {
+        "accuracy_matched": [
+          "adaptive",
+          "thinking",
+          "effort",
+          "low",
+          "medium",
+          "high",
+          "max"
+        ],
+        "accuracy_score": 7,
+        "accuracy_total": 7,
+        "accuracy_pct": 100.0,
+        "completeness_matched": [
+          "budget_tokens",
+          "deprecated",
+          "opus 4.6"
+        ],
+        "completeness_score": 3,
+        "completeness_total": 5,
+        "completeness_pct": 60.0,
+        "deprecated_found": [
+          "budget_tokens"
+        ],
+        "deprecated_count": 1,
+        "avoids_deprecated": 0
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3923,
+        "output_tokens": 800
+      }
+    },
+    {
+      "test_id": "3.2",
+      "category": "Implementation Guidance",
+      "condition": "treatment",
+      "response": "Yes\u2014**assistant message prefilling was removed in Opus 4.6 and will return a 400 error.**\n\nHere are your migration options:\n\n## 1. **Structured Outputs** (Recommended)\nIf you're using prefilling to enforce a response format, switch to structured outputs with `output_config.format`:\n\n```python\nclient.messages.create(\n    model=\"claude-opus-4-6\",\n    max_tokens=1024,\n    output_config={\"format\": \"json\", \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"analysis\": {\"type\": \"string\"},\n            \"confidence\": {\"type\": \"number\"}\n        },\n        \"required\": [\"analysis\", \"confidence\"]\n    }},\n    messages=[{\"role\": \"user\", \"content\": \"Analyze this...\"}]\n)\n```\n\n**Benefits**: Guaranteed schema compliance, no token overhead, cleaner than prefilling.\n\n## 2. **System Prompt**\nIf you need looser guidance on format/style:\n\n```python\nclient.messages.create(\n    model=\"claude-opus-4-6\",\n    max_tokens=1024,\n    system=\"Always respond with: [ANALYSIS] ... [CONFIDENCE] ...\",\n    messages=[{\"role\": \"user\", \"content\": \"...\"}]\n)\n```\n\n## 3. **Adaptive Thinking**\nIf the format matters because you want Claude to reason first, consider using adaptive thinking instead:\n\n```python\nclient.messages.create(\n    model=\"claude-opus-4-6\",\n    thinking={\"type\": \"adaptive\"},\n    effort=\"high\",  # or \"medium\"\n    messages=[...]\n)\n```\n\nThis lets Claude think before responding and often naturally produces better-structured outputs.\n\n---\n\n## Quick Migration Checklist\n- [ ] Remove `assistant` message from your `messages` list\n- [ ] Choose: structured outputs (safest), system prompt (flexible), or adaptive thinking (reasoning-first)\n- [ ] Test with your use case\u2014structured outputs usually require minimal changes to parsing logic\n\nWhat's your current prefilling pattern doing? That'll help me suggest the best fit.",
+      "scores": {
+        "accuracy_matched": [
+          "prefill",
+          "removed",
+          "400",
+          "error",
+          "structured output",
+          "system prompt"
+        ],
+        "accuracy_score": 6,
+        "accuracy_total": 6,
+        "accuracy_pct": 100.0,
+        "completeness_matched": [
+          "output_config",
+          "migration"
+        ],
+        "completeness_score": 2,
+        "completeness_total": 4,
+        "completeness_pct": 50.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3916,
+        "output_tokens": 499
+      }
+    },
+    {
+      "test_id": "3.3",
+      "category": "Implementation Guidance",
+      "condition": "treatment",
+      "response": "# Guaranteed JSON Schema Conformance\n\nYou want **structured outputs** with strict schema validation. Here's how to set it up:\n\n## Option 1: JSON Output Mode (Simpler)\n\nUse `output_config.format: \"json\"` with a `json_schema`:\n\n```python\nimport anthropic\nimport json\n\nclient = anthropic.Anthropic()\n\nmessage = client.messages.create(\n    model=\"claude-opus-4-5-20251101\",\n    max_tokens=1024,\n    output_config={\n        \"type\": \"json_schema\",\n        \"json_schema\": {\n            \"name\": \"user_data\",\n            \"schema\": {\n                \"type\": \"object\",\n                \"properties\": {\n                    \"name\": {\"type\": \"string\"},\n                    \"age\": {\"type\": \"integer\"},\n                    \"email\": {\"type\": \"string\", \"format\": \"email\"}\n                },\n                \"required\": [\"name\", \"age\", \"email\"]\n            },\n            \"strict\": True\n        }\n    },\n    messages=[\n        {\n            \"role\": \"user\",\n            \"content\": \"Extract user info: John is 30 years old, email john@example.com\"\n        }\n    ]\n)\n\nprint(message.content[0].text)  # Guaranteed valid JSON matching schema\n```\n\n## Option 2: Strict Tool Use (For Complex Workflows)\n\nUse `strict: true` on tool definitions for guaranteed schema conformance:\n\n```python\nmessage = client.messages.create(\n    model=\"claude-opus-4-5-20251101\",\n    max_tokens=1024,\n    tools=[\n        {\n            \"type\": \"function\",\n            \"function\": {\n                \"name\": \"save_user\",\n                \"description\": \"Save user data\",\n                \"strict\": True,  # \u2190 Guarantees schema compliance\n                \"parameters\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"name\": {\"type\": \"string\"},\n                        \"age\": {\"type\": \"integer\", \"minimum\": 0},\n                        \"email\": {\"type\": \"string\", \"format\": \"email\"}\n                    },\n                    \"required\": [\"name\", \"age\", \"email\"],\n                    \"additionalProperties\": False\n                }\n            }\n        }\n    ],\n    messages=[\n        {\"role\": \"user\", \"content\": \"Save this user: John, 30, john@example.com\"}\n    ]\n)\n\n# Tool calls will strictly match the schema \u2014 no deviations\nfor block in message.content:\n    if block.type == \"tool_use\":\n        print(block.input)  # Guaranteed valid per schema\n```\n\n## TypeScript Equivalent\n\nUsing the SDK helper:\n\n```typescript\nimport Anthropic from \"@anthropic-ai/sdk\";\nimport { zodOutputFormat } from \"@anthropic-ai/sdk/lib/zodOutputFormat\";\nimport { z } from \"zod\";\n\nconst client = new Anthropic();\n\nconst userSchema = z.object({\n  name: z.string(),\n  age: z.number().int().min(0),\n  email: z.string().email(),\n});\n\nconst message = await client.messages.create({\n  model: \"claude-opus-4-5-20251101\",\n  max_tokens: 1024,\n  output_config: zodOutputFormat(userSchema), // \u2190 Automatic schema generation\n  messages: [\n    {\n      role: \"user\",\n      content: \"Extract: John is 30, john@example.com\",\n    },\n  ],\n});\n\nconst result = JSON.parse(message.content[0].text);\n// result is guaranteed to match userSchema\n```\n\n## Key Differences\n\n| Aspect | JSON Output Mode | Strict Tool Use |\n|--------|------------------|-----------------|\n| **Best for** | Direct JSON responses | Multi-step workflows, agent patterns |\n| **Schema compliance** | \u2705 Guaranteed | \u2705 Guaranteed |\n| **When used** | Model returns JSON directly | Model calls tools with structured params |\n| **Flexibility** | One schema per request | Multiple tools, each with own schema |\n\n## Important Notes\n\n- **All current models support this** (Opus 4.6, 4.5; Sonnet 4.5; Haiku 4.5)\n- **No beta header required** \u2014 structured outputs are GA\n- **`strict: true` on tools** prevents hallucinated fields and enforces `required` properties\n- **Validation is server-side** \u2014 you get an error if the model violates the schema (rare, but possible if schema is too restrictive)\n- **Schema complexity**: keep `additionalProperties: false` if you want to reject extra fields\n\nChoose **Option 1** if you just need JSON output. Choose **Option 2** if you're building an agent that calls multiple tools.",
+      "scores": {
+        "accuracy_matched": [
+          "structured output",
+          "output_config",
+          "json_schema",
+          "strict",
+          "guaranteed"
+        ],
+        "accuracy_score": 5,
+        "accuracy_total": 5,
+        "accuracy_pct": 100.0,
+        "completeness_matched": [
+          "strict: true",
+          "tool use",
+          "zodoutputformat",
+          "sdk"
+        ],
+        "completeness_score": 4,
+        "completeness_total": 5,
+        "completeness_pct": 80.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3905,
+        "output_tokens": 1148
+      }
+    },
+    {
+      "test_id": "4.1",
+      "category": "Model Selection",
+      "condition": "treatment",
+      "response": "# Model Recommendation for Long-Document Analysis\n\nBased on your requirements, here's what I'd recommend:\n\n## Primary Choice: **Claude Opus 4.6**\n\n**Why it's the best fit:**\n\n1. **Context handling**: 200K token context (or 1M beta) easily handles 200+ page documents. With 1M context (tier 3+), you can process multiple long documents in a single request.\n\n2. **Output quality**: Opus 4.6 produces the most detailed, nuanced analysis. Its adaptive thinking automatically allocates reasoning effort where needed\u2014critical for complex document analysis.\n\n3. **128K output tokens**: Doubled from previous versions, letting you get comprehensive analysis without truncation.\n\n4. **Adaptive thinking**: Dynamically decides when/how much to think about problems. For document analysis, it'll spend more reasoning on complex sections and less on straightforward ones\u2014better cost efficiency than budgeted thinking.\n\n## Cost Optimization Strategies\n\nEven though Opus 4.6 is pricier per token, these approaches keep costs reasonable:\n\n- **Batch processing**: Use the Batch API for 50% cost reduction if analysis can be async. Great for processing document queues.\n\n- **Smart context management**: Use the Compaction API (beta) to automatically summarize documents as they approach context limits in multi-document sessions.\n\n- **Effort parameter**: Start with `effort: \"medium\"` for routine analysis, scale to `\"high\"` only for complex documents. Opus 4.6's \"max\" effort is available but unnecessary for most use cases.\n\n## Alternative: **Claude Sonnet 4.5** (if cost is critical)\n\nIf budget is your primary constraint:\n- **100x cheaper** than Opus 4.6\n- Still has 200K context (or 1M beta)\n- Excellent analysis quality, just less nuanced reasoning\n- Extended thinking + interleaved thinking support (thinking blocks between tool calls)\n- Good for routine analysis; consider Opus 4.6 for complex documents\n\n**Trade-off**: You might need to do more prompt engineering or break complex analysis into multiple requests.\n\n## Implementation Checklist\n\n- [ ] Enable 1M context beta (`context-1m-2025-08-07` header) if tier 3+ and processing multiple documents\n- [ ] Set `thinking: {type: \"adaptive\"}` for Opus 4.6 (no budget_tokens\u2014it's deprecated)\n- [ ] Use structured outputs (`output_config.format`) to guarantee consistent analysis structure\n- [ ] Consider Files API (beta) if documents are large\u2014upload once, reference across requests\n- [ ] Test effort levels (`low`/`medium`/`high`) to find your cost/quality sweet spot\n\n**Bottom line**: Opus 4.6 is worth the premium for 200+ page analysis. Its adaptive thinking and extended output avoid the \"cliff\" problem where cheaper models hit context/output limits and force expensive refactoring.",
+      "scores": {
+        "accuracy_matched": [
+          "opus 4.6",
+          "sonnet 4.5",
+          "128k",
+          "1m",
+          "200k"
+        ],
+        "accuracy_score": 5,
+        "accuracy_total": 7,
+        "accuracy_pct": 71.4,
+        "completeness_matched": [
+          "effort",
+          "batch",
+          "cost",
+          "interleaved thinking",
+          "adaptive"
+        ],
+        "completeness_score": 5,
+        "completeness_total": 6,
+        "completeness_pct": 83.3,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3913,
+        "output_tokens": 670
+      }
+    },
+    {
+      "test_id": "5.1",
+      "category": "Extension Awareness",
+      "condition": "treatment",
+      "response": "I can absolutely help you write that proposal! But first, let me suggest something that could save you time long-term:\n\nSince you're writing proposals weekly with a consistent structure, this is a perfect use case for a **skill** \u2014 a reusable template you can invoke with `/proposal` or similar. You'd build it once with your standard sections (executive summary, scope, pricing table, terms), and then each week you'd just fill in the client-specific details.\n\n**Would you like me to:**\n\n1. **Create a skill for you** that captures your proposal template and workflow \u2014 then use it to write the Acme Corp proposal right now\n2. **Just write the Acme Corp proposal directly** and we can build the skill after, once you see how it works\n\nIf you go with option 1, the skill will live in your Claude Code environment (or `.claude/skills/` if you're using it with a codebase) and be available every session. You'd invoke it via `/proposal` with just the client name and key details \u2014 much faster than re-explaining the structure each time.\n\n**Either way, I'll need a bit of info to get started:**\n- What are the main sections/subsections in your template?\n- Do you have typical pricing structures or terms language I should reference?\n- Any specific style or tone your proposals use?\n- For Acme Corp specifically: what's the scope of work, approximate budget/pricing, and key deliverables?\n\nLet me know which path sounds better, and share those details!",
+      "scores": {
+        "accuracy_matched": [
+          "skill",
+          "workflow",
+          "template",
+          "/"
+        ],
+        "accuracy_score": 4,
+        "accuracy_total": 6,
+        "accuracy_pct": 66.7,
+        "completeness_matched": [
+          "create a skill",
+          "capture"
+        ],
+        "completeness_score": 2,
+        "completeness_total": 6,
+        "completeness_pct": 33.3,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3917,
+        "output_tokens": 337
+      }
+    },
+    {
+      "test_id": "5.2",
+      "category": "Extension Awareness",
+      "condition": "treatment",
+      "response": "Yes! A **hook** is perfect for this. Hooks run automatically after you edit files without needing to remember\u2014and they don't use LLM tokens since they execute outside Claude.\n\nHere's what you'd set up:\n\n## Quick Setup\n\n1. **Create `.claude/hooks/lint-on-save.ts`** in your project:\n\n```typescript\nimport { Hook } from \"@anthropic-sdk/sdk\";\nimport { execSync } from \"child_process\";\n\nexport default {\n  name: \"lint-on-save\",\n  trigger: \"post-file-edit\",\n  filePatterns: [\"**/*.py\"],\n  async execute(context: any) {\n    const filePath = context.editedFile;\n    \n    try {\n      // Run your linting tools\n      execSync(`ruff check ${filePath}`, { stdio: \"inherit\" });\n      execSync(`mypy ${filePath}`, { stdio: \"inherit\" });\n      console.log(`\u2713 ${filePath} passed all checks`);\n    } catch (error) {\n      console.error(`\u2717 Linting failed for ${filePath}`);\n      throw error; // Prevents saving if you want strict mode\n    }\n  }\n} as Hook;\n```\n\n2. **Customize for your setup**. Replace the commands with whatever you use:\n   - `ruff`, `flake8`, `pylint` for linting\n   - `mypy`, `pyright`, `pydantic` for type checking\n   - Add pre-commit hooks or other tools as needed\n\n3. **Hook runs automatically** after every Python file edit in Claude Code (VS Code extension, JetBrains, or CLI).\n\n## Why a Hook vs Other Options?\n\n| Option | Why Not | \n|--------|---------|\n| **CLAUDE.md** | Would be loaded every session but isn't the right pattern for file watchers |\n| **Skill** | Requires manual invocation (`/lint`) \u2014 you'd still need to remember |\n| **Subagent** | Overkill for deterministic automation |\n| **MCP** | Better for external service access, not local file automation |\n\nHooks are designed exactly for this: **deterministic, automatic, zero-token automation on events**.\n\n## Pro Tips\n\n- **Fail soft or strict?** Remove the `throw error` line if you want warnings that don't block saves; keep it for strict enforcement\n- **Multiple tools?** Chain them: run linting, then type checking, then formatters\n- **Performance?** If your checks take >5 seconds, consider running only on changed functions or deferring full checks to CI\n- **Feedback?** The hook can write results to a separate status file or terminal output\n\nWould you like me to help customize this for your specific linting tools (ruff vs pylint, mypy vs pyright, etc.)?",
+      "scores": {
+        "accuracy_matched": [
+          "hook",
+          "event",
+          "automatic",
+          "deterministic"
+        ],
+        "accuracy_score": 4,
+        "accuracy_total": 6,
+        "accuracy_pct": 66.7,
+        "completeness_matched": [
+          "command",
+          "edit",
+          "token"
+        ],
+        "completeness_score": 3,
+        "completeness_total": 6,
+        "completeness_pct": 50.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3920,
+        "output_tokens": 659
+      }
+    },
+    {
+      "test_id": "5.3",
+      "category": "Extension Awareness",
+      "condition": "treatment",
+      "response": "**Put this in `CLAUDE.md`** in your project root.\n\nThis is exactly what `CLAUDE.md` is for \u2014 persistent context about your project's conventions that Claude should *always* know about, loaded every session at zero invocation cost. It's the right tool because:\n\n- **It's always available** \u2014 no need to re-explain conventions each session\n- **Zero cost** \u2014 loaded once per request, doesn't consume tokens like repeated messages\n- **Searchable** \u2014 Claude can reference it when making decisions about your API\n- **Version-controlled** \u2014 lives in git, evolves with your codebase\n\n## What to include\n\nStructure it as a reference guide your team would actually use:\n\n```markdown\n# API Conventions\n\n## JSON Field Naming\n- Use **camelCase** for all field names (not snake_case or PascalCase)\n- Example: `userId`, `createdAt`, `isActive`\n\n## Date/Time Format\n- Use **ISO 8601** format (e.g., `2024-01-15T14:30:00Z`)\n- Always include timezone \u2014 assume UTC unless otherwise specified\n\n## Pagination\n- All list endpoints must include pagination\n- Query parameters: `?page=1&limit=20`\n- Response structure:\n  ```json\n  {\n    \"data\": [...],\n    \"pagination\": {\n      \"page\": 1,\n      \"limit\": 20,\n      \"total\": 250,\n      \"hasMore\": true\n    }\n  }\n  ```\n\n## Error Responses\n- Use standard HTTP status codes\n- Always return: `{ \"error\": \"message\", \"code\": \"ERROR_CODE\" }`\n\n## Authentication\n- Bearer token in Authorization header\n- Token format: `Authorization: Bearer {jwt_token}`\n```\n\nKeep it **focused and concise** \u2014 under ~500 lines. Link to longer reference docs if needed.\n\n## When to use alternatives\n\n- **Skill** \u2014 if you have reusable workflows (e.g., \"how to write a migration script\") or domain knowledge that's separate from conventions\n- **MCP** \u2014 if you need Claude to *query* your actual API (schema discovery, validation against live endpoints)\n- **Hook** \u2014 if you want to *enforce* these conventions automatically (linting generated code, validating PRs)\n\nFor pure knowledge that affects how Claude thinks about your codebase, `CLAUDE.md` is the answer.",
+      "scores": {
+        "accuracy_matched": [
+          "claude.md",
+          "skill",
+          "always",
+          "every session",
+          "persistent",
+          "convention"
+        ],
+        "accuracy_score": 6,
+        "accuracy_total": 6,
+        "accuracy_pct": 100.0,
+        "completeness_matched": [
+          "500 lines",
+          "reference",
+          "project",
+          "user"
+        ],
+        "completeness_score": 4,
+        "completeness_total": 5,
+        "completeness_pct": 80.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3925,
+        "output_tokens": 554
+      }
+    },
+    {
+      "test_id": "5.4",
+      "category": "Extension Awareness",
+      "condition": "treatment",
+      "response": "Yes! There are a couple of great approaches depending on your setup:\n\n## Best Option: Use the Built-in Document Skills\n\nClaude has production-quality skills for creating PowerPoint presentations (.pptx files). These handle formatting, layouts, and best practices automatically. Here's how:\n\n1. **Share your data** \u2014 Give me your quarterly results (revenue, metrics, key highlights, etc.)\n2. **I'll generate the presentation** \u2014 Using Claude's document generation capabilities, I can create a polished .pptx with:\n   - Professional slide layouts\n   - Charts and formatting\n   - Multiple slides organized logically\n   - Ready to download and customize\n\nThis is faster than building from scratch and produces presentation-quality output.\n\n## Alternative: Pre-built Community Skills\n\nIf you're using Claude Code (our IDE extensions), you can also check **skills.sh** \u2014 a public registry of reusable skills. There may be presentation templates or specialized skills for financial reporting that could be a good starting point.\n\n## What I Need From You\n\nTo create your presentation, please share:\n- **Key metrics** (revenue, growth rates, profit, etc.)\n- **Performance highlights** (what went well?)\n- **Challenges or concerns**\n- **Outlook** (what's coming next quarter?)\n- **Any specific structure** you prefer (exec summary first, departmental breakdowns, etc.)\n- **Tone** (formal, casual, technical level?)\n\nOnce you provide that, I can generate a complete, downloadable PowerPoint presentation for you.\n\nWould you like to share those details now?",
+      "scores": {
+        "accuracy_matched": [
+          "skill",
+          "pptx",
+          "presentation",
+          "document",
+          "pre-built"
+        ],
+        "accuracy_score": 5,
+        "accuracy_total": 6,
+        "accuracy_pct": 83.3,
+        "completeness_matched": [
+          "formatting",
+          "template",
+          "best practices",
+          "skill"
+        ],
+        "completeness_score": 4,
+        "completeness_total": 5,
+        "completeness_pct": 80.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3901,
+        "output_tokens": 347
+      }
+    },
+    {
+      "test_id": "5.5",
+      "category": "Extension Awareness",
+      "condition": "treatment",
+      "response": "You've got the perfect case for a **plugin** \u2014 it's designed to bundle exactly this kind of multi-component setup for team distribution.\n\nHere's what you have and how a plugin packages it:\n\n| Your Component | Maps to Plugin Part |\n|---|---|\n| Custom code review rules | Skill (reusable workflow) |\n| Slack integration | MCP server (external service connection) |\n| Auto-formatting hooks | Hooks (deterministic automation) |\n| Architecture reference docs | CLAUDE.md or skill content |\n\n## Building Your Plugin\n\nA plugin bundles all of these with a single install command. Your team runs:\n```bash\nnpx skills add your-org/code-review-plugin\n```\n\nAnd they get:\n- \u2705 Code review skill auto-loaded with your rules\n- \u2705 Slack MCP server configured and ready\n- \u2705 Auto-formatting hooks active\n- \u2705 Architecture docs in context\n\n**Plugin structure** (simplified):\n```\ncode-review-plugin/\n\u251c\u2500\u2500 CLAUDE.md                    # Architecture reference\n\u251c\u2500\u2500 skills/\n\u2502   \u2514\u2500\u2500 code-review.md          # Your custom review rules\n\u251c\u2500\u2500 .hooks/\n\u2502   \u2514\u2500\u2500 format-on-save.js       # Auto-formatting logic\n\u251c\u2500\u2500 mcp.json                     # Slack MCP config\n\u2514\u2500\u2500 plugin.json                  # Plugin metadata\n```\n\n**plugin.json** declares everything:\n```json\n{\n  \"name\": \"code-review-plugin\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Team code review setup with Slack + formatting\",\n  \"skills\": [\"code-review\"],\n  \"hooks\": [\"format-on-save\"],\n  \"mcp\": [\"slack\"],\n  \"claudemd\": true\n}\n```\n\n## Distribution Options\n\n1. **Private plugin marketplace** (best for teams): Host plugins in your org's internal registry. Install via private namespace:\n   ```bash\n   npx skills add @your-org/code-review-plugin\n   ```\n\n2. **Public skills.sh registry**: If your setup has no sensitive data, publish openly and let others benefit.\n\n3. **Git repository**: Pin to a specific commit for full control:\n   ```bash\n   npx skills add github:your-org/code-review-plugin#v1.0.0\n   ```\n\n## Setup Checklist\n\nBefore distributing:\n\n- [ ] **Extract the skill**: Move code review logic into `skills/code-review.md`. Make it self-contained so it works in isolation.\n- [ ] **Finalize hooks**: Test auto-formatting triggers (on save, on commit, etc.). Ensure they work across team members' different setups.\n- [ ] **Configure MCP**: Verify Slack authentication flow works for new users. Document any required API tokens (ideally stored in env vars, not the plugin).\n- [ ] **Write CLAUDE.md**: Summarize architecture at a high level (don't dump thousands of lines). Link to full docs if they're extensive.\n- [ ] **Test installation**: Have a teammate install it fresh to catch missing dependencies or config issues.\n\n## Key Consideration: Secrets Management\n\nYour Slack integration will need credentials. **Don't commit tokens to the plugin.** Instead:\n- Use environment variables (`SLACK_BOT_TOKEN`)\n- Document setup in a `SETUP.md`:\n  ```markdown\n  1. Install: `npx skills add your-org/code-review-plugin`\n  2. Set token: `export SLACK_BOT_TOKEN=xoxb-...`\n  3. Claude Code will auto-load everything\n  ```\n\n## What Your Team Gets\n\nOnce installed:\n- `/code-review` command is available immediately\n- Hooks run silently after they save/commit\n- Slack notifications flow automatically\n- Architecture context is always loaded\n- Updates roll out with `npx skills upgrade` (if you push changes)\n\nThis is significantly better than distributing instructions or asking everyone to copy-paste configs \u2014 it's one command, fully reproducible, version-controlled.\n\nWould you like help with any specific part \u2014 structuring the skill, writing the hook logic, or setting up the plugin metadata?",
+      "scores": {
+        "accuracy_matched": [
+          "plugin",
+          "bundle",
+          "package",
+          "marketplace",
+          "install"
+        ],
+        "accuracy_score": 5,
+        "accuracy_total": 6,
+        "accuracy_pct": 83.3,
+        "completeness_matched": [
+          "skills",
+          "hooks",
+          "mcp",
+          "namespace",
+          "plugin.json",
+          "repository"
+        ],
+        "completeness_score": 6,
+        "completeness_total": 6,
+        "completeness_pct": 100.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3927,
+        "output_tokens": 958
+      }
+    },
+    {
+      "test_id": "6.1",
+      "category": "Negative (No Change Expected)",
+      "condition": "treatment",
+      "response": "# Python Function for Sorting Dictionaries by Key\n\nHere's a robust implementation with type hints and error handling:\n\n```python\nfrom typing import List, Dict, Any, Optional\n\ndef sort_dictionaries(\n    data: List[Dict[str, Any]],\n    key: str,\n    reverse: bool = False,\n    default: Any = None,\n    missing_key_strategy: str = \"skip\"\n) -> List[Dict[str, Any]]:\n    \"\"\"\n    Sort a list of dictionaries by a specified key.\n    \n    Args:\n        data: List of dictionaries to sort\n        key: The dictionary key to sort by\n        reverse: If True, sort in descending order (default: False)\n        default: Default value for missing keys (used with 'default' strategy)\n        missing_key_strategy: How to handle missing keys:\n            - \"skip\": Exclude items missing the key\n            - \"default\": Use 'default' value for missing keys\n            - \"raise\": Raise KeyError if key is missing\n    \n    Returns:\n        Sorted list of dictionaries\n    \n    Raises:\n        KeyError: If missing_key_strategy is \"raise\" and key is missing\n        ValueError: If missing_key_strategy is invalid\n    \n    Examples:\n        >>> users = [\n        ...     {\"name\": \"Alice\", \"age\": 30},\n        ...     {\"name\": \"Bob\", \"age\": 25},\n        ...     {\"name\": \"Charlie\", \"age\": 35}\n        ... ]\n        >>> sort_dictionaries(users, \"age\")\n        [{\"name\": \"Bob\", \"age\": 25}, {\"name\": \"Alice\", \"age\": 30}, {\"name\": \"Charlie\", \"age\": 35}]\n        \n        >>> items = [{\"id\": 1, \"price\": 50}, {\"id\": 2}, {\"id\": 3, \"price\": 30}]\n        >>> sort_dictionaries(items, \"price\", default=float('inf'), missing_key_strategy=\"default\")\n        [{\"id\": 3, \"price\": 30}, {\"id\": 1, \"price\": 50}, {\"id\": 2}]\n    \"\"\"\n    \n    # Validate strategy\n    valid_strategies = {\"skip\", \"default\", \"raise\"}\n    if missing_key_strategy not in valid_strategies:\n        raise ValueError(\n            f\"invalid missing_key_strategy '{missing_key_strategy}'. \"\n            f\"Must be one of {valid_strategies}\"\n        )\n    \n    if missing_key_strategy == \"raise\":\n        # Check if all items have the key\n        if not all(key in item for item in data):\n            missing_indices = [i for i, item in enumerate(data) if key not in item]\n            raise KeyError(\n                f\"Key '{key}' not found in items at indices: {missing_indices}\"\n            )\n        return sorted(data, key=lambda x: x[key], reverse=reverse)\n    \n    elif missing_key_strategy == \"skip\":\n        # Filter out items without the key\n        filtered = [item for item in data if key in item]\n        return sorted(filtered, key=lambda x: x[key], reverse=reverse)\n    \n    else:  # missing_key_strategy == \"default\"\n        # Use default value for missing keys\n        return sorted(\n            data,\n            key=lambda x: x.get(key, default),\n            reverse=reverse\n        )\n\n\n# Example usage and tests\nif __name__ == \"__main__\":\n    # Example 1: Basic sorting\n    users = [\n        {\"name\": \"Alice\", \"age\": 30},\n        {\"name\": \"Bob\", \"age\": 25},\n        {\"name\": \"Charlie\", \"age\": 35}\n    ]\n    \n    print(\"Example 1: Basic sorting by age\")\n    result = sort_dictionaries(users, \"age\")\n    for user in result:\n        print(f\"  {user}\")\n    \n    # Example 2: Reverse sorting\n    print(\"\\nExample 2: Reverse sorting by age\")\n    result = sort_dictionaries(users, \"age\", reverse=True)\n    for user in result:\n        print(f\"  {user}\")\n    \n    # Example 3: Handling missing keys with skip strategy\n    items = [\n        {\"id\": 1, \"price\": 50},\n        {\"id\": 2},  # missing \"price\"\n        {\"id\": 3, \"price\": 30}\n    ]\n    \n    print(\"\\nExample 3: Missing key - skip strategy\")\n    result = sort_dictionaries(items, \"price\", missing_key_strategy=\"skip\")\n    for item in result:\n        print(f\"  {item}\")\n    \n    # Example 4: Handling missing keys with default strategy\n    print(\"\\nExample 4: Missing key - default strategy (default=999)\")\n    result = sort_dictionaries(\n        items, \"price\", default=999, missing_key_strategy=\"default\"\n    )\n    for item in result:\n        print(f\"  {item}\")\n    \n    # Example 5: Handling missing keys with raise strategy\n    print(\"\\nExample 5: Missing key - raise strategy\")\n    try:\n        result = sort_dictionaries(items, \"price\", missing_key_strategy=\"raise\")\n    except KeyError as e:\n        print(f\"  Error caught: {e}\")\n```\n\n## Key Features\n\n| Feature | Description |\n|---------|-------------|\n| **Type Hints** | Full type annotations for parameters and return values |\n| **Three Strategies** | Handle missing keys by skipping, using defaults, or raising errors |\n| **Flexible Sorting** | Support reverse/descending order |\n| **Error Handling** | Validates strategy parameter and provides informative error messages |\n| **Comprehensive Docstring** | Includes usage examples and parameter documentation |\n\n## Strategy Comparison\n\n```python\n# Skip strategy: removes items without the key\nsort_dictionaries(data, \"score\", missing_key_strategy=\"skip\")\n\n# Default strategy: treats missing keys as a specific value\nsort_dictionaries(data, \"score\", default=0, missing_key_strategy=\"default\")\n\n# Raise strategy: fails if any item is missing the key\nsort_dictionaries(data, \"score\", missing_key_strategy=\"raise\")\n```\n\nChoose the strategy based on your use case:\n- **skip**: Good for filtering to valid records\n- **default**: Good when missing values should sort consistently\n- **raise**: Good for strict validation (fail-fast)",
+      "scores": {
+        "accuracy_matched": [
+          "def ",
+          "sorted",
+          "key",
+          "lambda",
+          "keyerror"
+        ],
+        "accuracy_score": 5,
+        "accuracy_total": 6,
+        "accuracy_pct": 83.3,
+        "completeness_matched": [
+          "type hint",
+          "typing",
+          "optional",
+          "default",
+          "reverse"
+        ],
+        "completeness_score": 5,
+        "completeness_total": 5,
+        "completeness_pct": 100.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3910,
+        "output_tokens": 1546
+      }
+    },
+    {
+      "test_id": "6.2",
+      "category": "Negative (No Change Expected)",
+      "condition": "treatment",
+      "response": "# TCP vs UDP\n\nThese are the two primary transport layer protocols (Layer 4) in the Internet Protocol Suite. Here's how they compare:\n\n## **TCP (Transmission Control Protocol)**\n\n**Characteristics:**\n- **Connection-oriented** \u2014 establishes a connection before data transfer (three-way handshake)\n- **Reliable delivery** \u2014 guarantees all data arrives intact and in order\n- **Error checking** \u2014 detects and retransmits lost or corrupted packets\n- **Flow control** \u2014 manages transmission speed to avoid overwhelming the receiver\n- **Slower** \u2014 overhead from reliability mechanisms\n- **Ordered** \u2014 data arrives in the exact sequence sent\n\n**Use cases:**\n- Email (SMTP, POP3, IMAP)\n- Web browsing (HTTP/HTTPS)\n- File transfer (FTP, SFTP)\n- Remote access (SSH, Telnet)\n- Database connections\n- Any scenario where **data integrity matters more than speed**\n\n---\n\n## **UDP (User Datagram Protocol)**\n\n**Characteristics:**\n- **Connectionless** \u2014 sends data immediately without setup\n- **Unreliable delivery** \u2014 no guarantee packets arrive or arrive in order\n- **Minimal error checking** \u2014 faster but packets may be lost\n- **No flow control** \u2014 sends at full speed\n- **Faster** \u2014 less overhead\n- **Unordered** \u2014 packets may arrive out of sequence\n\n**Use cases:**\n- Live video/audio streaming (YouTube, Zoom, Twitch)\n- Online gaming\n- VoIP (voice calls)\n- DNS queries\n- IoT sensor data\n- Live broadcasts\n- Any scenario where **speed matters more than perfect accuracy**\n\n---\n\n## **Quick Comparison Table**\n\n| Feature | TCP | UDP |\n|---------|-----|-----|\n| Connection | Required | Not required |\n| Reliability | Guaranteed | Best-effort |\n| Speed | Slower | Faster |\n| Ordering | Guaranteed | Not guaranteed |\n| Overhead | Higher | Lower |\n| Error checking | Comprehensive | Basic |\n\n---\n\n## **Practical Decision Rule**\n\n**Choose TCP if:** You absolutely need every piece of data to arrive correctly. A few milliseconds of delay is acceptable.\n\n**Choose UDP if:** You need speed and can tolerate occasional lost data. One lost video frame is better than a 500ms delay waiting for a retransmit.\n\nMany modern applications use **both** \u2014 for example, video streaming often uses UDP for the stream itself but TCP for control signals and metadata.",
+      "scores": {
+        "accuracy_matched": [
+          "reliable",
+          "connection",
+          "packet",
+          "order",
+          "stream"
+        ],
+        "accuracy_score": 5,
+        "accuracy_total": 5,
+        "accuracy_pct": 100.0,
+        "completeness_matched": [
+          "handshake",
+          "overhead",
+          "gaming",
+          "video"
+        ],
+        "completeness_score": 4,
+        "completeness_total": 5,
+        "completeness_pct": 80.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3893,
+        "output_tokens": 569
+      }
+    },
+    {
+      "test_id": "6.3",
+      "category": "Negative (No Change Expected)",
+      "condition": "treatment",
+      "response": "# Preventing Unnecessary Re-renders in React\n\nYou have several options depending on your situation. Here are the most common approaches:\n\n## 1. **React.memo** (Simplest for Most Cases)\n\nWrap your component to skip re-renders when props are shallowly equal:\n\n```jsx\nconst MyComponent = React.memo(({ name, count }) => {\n  return <div>{name}: {count}</div>;\n});\n```\n\nThis works great for components with primitive props or simple objects.\n\n**When to use**: Your props are primitives (strings, numbers, booleans) or you're passing new object/array literals each time anyway.\n\n## 2. **useMemo** (For Expensive Computations)\n\nIf the parent is creating new objects/arrays and passing them as props, memoize them:\n\n```jsx\n// In parent component\nconst config = useMemo(() => ({ theme: 'dark' }), []);\nconst items = useMemo(() => [1, 2, 3], []);\n\nreturn <Child config={config} items={items} />;\n```\n\nThen combine with `React.memo` in the child.\n\n## 3. **useCallback** (For Function Props)\n\nIf you're passing functions as props, memoize them:\n\n```jsx\n// In parent component\nconst handleClick = useCallback(() => {\n  console.log('clicked');\n}, []);\n\nreturn <Child onClick={handleClick} />;\n```\n\n## 4. **Custom Comparison** (Advanced)\n\nControl exactly which props trigger re-renders:\n\n```jsx\nconst MyComponent = React.memo(\n  ({ name, count, metadata }) => {\n    return <div>{name}: {count}</div>;\n  },\n  (prevProps, nextProps) => {\n    // Return true if props are equal (skip re-render)\n    return prevProps.name === nextProps.name && \n           prevProps.count === nextProps.count;\n    // metadata changes won't trigger re-render\n  }\n);\n```\n\n## The Root Cause\n\nReact's default behavior is: if a parent re-renders, all its children re-render. Even if props are unchanged, new object references (created inline) break shallow equality checks.\n\n```jsx\n// \u274c Creates new object every render\n<Child config={{ theme: 'dark' }} />\n\n// \u2705 Reuses same object\nconst config = useMemo(() => ({ theme: 'dark' }), []);\n<Child config={config} />\n```\n\n## Quick Diagnosis\n\nCheck what's actually changing:\n\n```jsx\nconst MyComponent = React.memo(({ name, count }) => {\n  console.log('render', { name, count });\n  return <div>{name}: {count}</div>;\n});\n\nexport default MyComponent;\n```\n\nIf the logged values are identical but the component still re-renders, you have an object reference issue in the parent.\n\n---\n\n**What's your specific case?** Are you passing objects/arrays, functions, or primitives? That'll help determine the best approach.",
+      "scores": {
+        "accuracy_matched": [
+          "memo",
+          "usememo",
+          "usecallback",
+          "react.memo",
+          "render"
+        ],
+        "accuracy_score": 5,
+        "accuracy_total": 5,
+        "accuracy_pct": 100.0,
+        "completeness_matched": [
+          "reference",
+          "shallow",
+          "comparison"
+        ],
+        "completeness_score": 3,
+        "completeness_total": 5,
+        "completeness_pct": 60.0,
+        "deprecated_found": [],
+        "deprecated_count": 0,
+        "avoids_deprecated": 1
+      },
+      "judge_scores": null,
+      "usage": {
+        "input_tokens": 3903,
+        "output_tokens": 705
+      }
+    }
+  ],
+  "aggregated": {
+    "1.1": {
+      "control": {
+        "accuracy_score": 1,
+        "completeness_score": 1,
+        "deprecated_count": 2,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 3,
+        "completeness_score": 3,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "1.2": {
+      "control": {
+        "accuracy_score": 0,
+        "completeness_score": 0,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 4,
+        "completeness_score": 2,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "1.3": {
+      "control": {
+        "accuracy_score": 2,
+        "completeness_score": 1,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 2,
+        "completeness_score": 1,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "2.1": {
+      "control": {
+        "accuracy_score": 1,
+        "completeness_score": 0,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 4,
+        "completeness_score": 5,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "2.2": {
+      "control": {
+        "accuracy_score": 1,
+        "completeness_score": 1,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 6,
+        "completeness_score": 3,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "2.3": {
+      "control": {
+        "accuracy_score": 1,
+        "completeness_score": 1,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 6,
+        "completeness_score": 2,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "3.1": {
+      "control": {
+        "accuracy_score": 2,
+        "completeness_score": 2,
+        "deprecated_count": 1,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 7,
+        "completeness_score": 3,
+        "deprecated_count": 1,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "3.2": {
+      "control": {
+        "accuracy_score": 2,
+        "completeness_score": 1,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 6,
+        "completeness_score": 2,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "3.3": {
+      "control": {
+        "accuracy_score": 4,
+        "completeness_score": 0,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 5,
+        "completeness_score": 4,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "4.1": {
+      "control": {
+        "accuracy_score": 1,
+        "completeness_score": 1,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 5,
+        "completeness_score": 5,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "5.1": {
+      "control": {
+        "accuracy_score": 2,
+        "completeness_score": 0,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 4,
+        "completeness_score": 2,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "5.2": {
+      "control": {
+        "accuracy_score": 3,
+        "completeness_score": 2,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 4,
+        "completeness_score": 3,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "5.3": {
+      "control": {
+        "accuracy_score": 2,
+        "completeness_score": 1,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 6,
+        "completeness_score": 4,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "5.4": {
+      "control": {
+        "accuracy_score": 2,
+        "completeness_score": 1,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 5,
+        "completeness_score": 4,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "5.5": {
+      "control": {
+        "accuracy_score": 0,
+        "completeness_score": 0,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 5,
+        "completeness_score": 6,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "6.1": {
+      "control": {
+        "accuracy_score": 4,
+        "completeness_score": 5,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 5,
+        "completeness_score": 5,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "6.2": {
+      "control": {
+        "accuracy_score": 4,
+        "completeness_score": 3,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 5,
+        "completeness_score": 4,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    },
+    "6.3": {
+      "control": {
+        "accuracy_score": 5,
+        "completeness_score": 3,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      },
+      "treatment": {
+        "accuracy_score": 5,
+        "completeness_score": 3,
+        "deprecated_count": 0,
+        "judge_accuracy": null,
+        "judge_completeness": null,
+        "judge_actionability": null,
+        "judge_avoids_deprecated": null,
+        "num_runs": 1
+      }
+    }
+  }
+}
