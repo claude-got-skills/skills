@@ -27,6 +27,7 @@ import argparse
 import statistics
 from pathlib import Path
 from typing import Optional
+from rubrics import RUBRICS
 
 # Load .env from repo root if present
 _env_path = Path(__file__).parent.parent / ".env"
@@ -1252,6 +1253,11 @@ TESTS = [
     },
 ]
 
+# Merge independent rubrics into test definitions
+for _test in TESTS:
+    if _test["id"] in RUBRICS:
+        _test["rubric"] = RUBRICS[_test["id"]]
+
 
 def match_keyword_or_synonyms(keyword_entry, resp_lower: str) -> bool:
     """Match a keyword entry against a response. Supports synonym groups.
@@ -1310,9 +1316,9 @@ def keyword_score(response: str, test: dict) -> dict:
 def judge_score(client, test: dict, response: str, skill_body: str) -> Optional[dict]:
     """Use LLM as judge to score response on multiple dimensions.
 
-    The judge receives the full SKILL.md content as a rubric so it can
-    evaluate whether responses correctly reference current Claude capabilities,
-    API features, and extension patterns.
+    If the test has an independent 'rubric' field (list of factual claims from
+    Anthropic docs), the judge uses those claims instead of SKILL.md to avoid
+    circular scoring bias. Falls back to SKILL.md for tests without rubrics.
     """
     kw = test["scoring_keywords"]
 
@@ -1325,8 +1331,25 @@ def judge_score(client, test: dict, response: str, skill_body: str) -> Optional[
             expected_keywords.append(entry)
     expected_knowledge = ", ".join(expected_keywords) if expected_keywords else "Claude capabilities and best practices"
 
-    # Build judge system prompt with SKILL.md as ground truth rubric
-    judge_system = f"""You are an expert evaluator scoring AI responses about Claude's capabilities.
+    # Build judge system prompt — use per-test rubric if available, else SKILL.md
+    rubric_claims = test.get("rubric")
+    if rubric_claims:
+        # Independent rubric: factual claims sourced from Anthropic docs (not SKILL.md)
+        formatted_claims = "\n".join(f"- {claim}" for claim in rubric_claims)
+        judge_system = f"""You are an expert evaluator scoring AI responses about Claude's capabilities.
+
+Use the following VERIFIED FACTS from Anthropic's official documentation as your scoring rubric.
+Score the response based on whether it aligns with these facts. A response need not mention all
+facts to score well — focus on accuracy and relevance to the user's question.
+
+## Verified Facts for This Question
+{formatted_claims}
+
+Score the response against these facts. Responses that are specific and correct score higher
+than vague or generic responses, even if the generic response sounds confident."""
+    else:
+        # Legacy fallback: use SKILL.md as ground truth (has circular bias)
+        judge_system = f"""You are an expert evaluator scoring AI responses about Claude's capabilities.
 
 IMPORTANT: Use the following reference document as GROUND TRUTH for what Claude can actually do.
 Responses that mention specific features, parameter names, headers, or patterns from this

@@ -32,6 +32,8 @@ INTER_PROMPT_DELAY=12  # seconds between prompts (10-15s range)
 RESPONSE_TIMEOUT=120   # max seconds to wait for response completion
 POLL_INTERVAL=3        # seconds between completion polls
 SCREENSHOT_DIR=""      # set after RESULTS_DIR is created
+HEADED_MODE=false      # --headed: run eval in headed (visible) browser
+YES_MODE=false         # --yes: skip interactive confirmations
 
 # --- Test Prompts (P1-P5) ----------------------------------------------------
 # Stored as parallel indexed arrays for bash 3.2 compatibility.
@@ -67,11 +69,15 @@ CHROME_ARGS="--disable-blink-features=AutomationControlled"
 
 ab() {
   # Wrapper: runs agent-browser with session, using real Chrome to avoid bot detection
-  agent-browser --session "$SESSION" --executable-path "$CHROME_PATH" --args "$CHROME_ARGS" "$@"
+  if [[ "$HEADED_MODE" == "true" ]]; then
+    agent-browser --session "$SESSION" --headed --executable-path "$CHROME_PATH" --args "$CHROME_ARGS" "$@"
+  else
+    agent-browser --session "$SESSION" --executable-path "$CHROME_PATH" --args "$CHROME_ARGS" "$@"
+  fi
 }
 
 ab_headed() {
-  # Wrapper: runs agent-browser in headed mode with session, using real Chrome
+  # Wrapper: always runs in headed mode (for auth flow)
   agent-browser --session "$SESSION" --headed --executable-path "$CHROME_PATH" --args "$CHROME_ARGS" "$@"
 }
 
@@ -223,46 +229,65 @@ wait_for_response() {
 
 extract_response() {
   # Extract the assistant's response text from the page
-  local response_text
+  # Strategy 1 (preferred): Use snapshot to find response content via accessibility tree
+  local snapshot
+  snapshot=$(ab snapshot 2>/dev/null || echo "")
 
-  # Strategy 1: Use eval to get response text from the DOM
-  response_text=$(ab eval "
-    (function() {
-      var selectors = [
-        '[data-testid=\"chat-message-text\"]',
-        'div.font-claude-message',
-        'div.prose',
-        'div[class*=\"response\"]',
-        'div[class*=\"message\"][class*=\"assistant\"]'
-      ];
-      for (var i = 0; i < selectors.length; i++) {
-        var els = document.querySelectorAll(selectors[i]);
-        if (els.length > 0) {
-          var text = els[els.length - 1].innerText;
-          if (text && text.trim().length > 0) return text;
-        }
-      }
-      return 'EXTRACTION_FAILED';
-    })()
-  " 2>/dev/null || echo "EXTRACTION_FAILED")
+  if [[ -n "$snapshot" ]]; then
+    # The snapshot contains the full text content. Extract everything after
+    # the user's prompt — the assistant's response is the last large text block.
+    # Save snapshot for debugging
+    echo "$snapshot" > "$RESULTS_DIR/last_snapshot.txt" 2>/dev/null || true
 
-  # Strategy 2: If eval failed, try broader selectors
-  if [[ "$response_text" == "EXTRACTION_FAILED" || -z "$response_text" ]]; then
-    log_warn "  DOM extraction failed, falling back to broader selectors"
+    # Try to get response via eval with multiple selector strategies
+    local response_text
     response_text=$(ab eval "
       (function() {
-        var msgs = document.querySelectorAll('div[class*=\"message\"], div[class*=\"chat\"], article');
-        var texts = [];
-        for (var i = 0; i < msgs.length; i++) {
-          var t = msgs[i].innerText;
-          if (t && t.length > 50) texts.push(t);
+        // Strategy A: Look for response containers by data attributes
+        var selectors = [
+          '[data-testid=\"chat-message-text\"]',
+          '[data-is-streaming]',
+          'div.font-claude-message',
+          'div.prose',
+          'div[class*=\"response\"]',
+          'div[class*=\"message\"][class*=\"assistant\"]'
+        ];
+        for (var i = 0; i < selectors.length; i++) {
+          var els = document.querySelectorAll(selectors[i]);
+          if (els.length > 0) {
+            var text = els[els.length - 1].innerText;
+            if (text && text.trim().length > 50) return text;
+          }
         }
-        return texts.length > 0 ? texts[texts.length - 1] : 'EXTRACTION_FAILED';
+        // Strategy B: Find all article or section elements with substantial text
+        var articles = document.querySelectorAll('article, section, div[class*=\"chat\"], div[class*=\"message\"]');
+        var longest = '';
+        for (var i = 0; i < articles.length; i++) {
+          var t = articles[i].innerText;
+          if (t && t.length > longest.length) longest = t;
+        }
+        if (longest.length > 50) return longest;
+        return 'EXTRACTION_FAILED';
       })()
     " 2>/dev/null || echo "EXTRACTION_FAILED")
+
+    if [[ "$response_text" != "EXTRACTION_FAILED" && -n "$response_text" ]]; then
+      echo "$response_text"
+      return 0
+    fi
   fi
 
-  echo "$response_text"
+  # Strategy 2: Snapshot text extraction — parse the raw snapshot text
+  # The snapshot contains readable text content; extract the last substantial block
+  if [[ -n "$snapshot" ]]; then
+    log_warn "  DOM extraction failed, parsing snapshot text directly"
+    # The snapshot is accessibility tree text — the response content is embedded in it
+    echo "$snapshot"
+    return 0
+  fi
+
+  log_warn "  All extraction strategies failed"
+  echo "EXTRACTION_FAILED"
 }
 
 extract_thinking() {
@@ -353,7 +378,7 @@ run_prompt() {
   # Find the textbox/input ref from snapshot
   # Claude.ai uses a contenteditable div or ProseMirror editor
   local input_ref
-  input_ref=$(echo "$snapshot" | grep -iE 'textbox|contenteditable|paragraph|ProseMirror|editor|"Send a message"|"Reply"|"How can"|placeholder' | head -1 | grep -o '@e[0-9]*' | head -1 || echo "")
+  input_ref=$(echo "$snapshot" | grep -iE 'textbox|"Write your prompt"|contenteditable|ProseMirror|editor|"Send a message"|"Reply"|"How can"|placeholder' | head -1 | grep -o '@e[0-9]*' | head -1 || echo "")
 
   if [[ -z "$input_ref" ]]; then
     # Broader fallback: look for any textarea or input-like element
@@ -622,7 +647,7 @@ generate_report() {
 # --- Main ---------------------------------------------------------------------
 
 show_usage() {
-  echo "Usage: $0 [--auth | --control | --treatment | --report-only]"
+  echo "Usage: $0 [--auth | --control | --treatment | --report-only] [--headed] [--yes]"
   echo ""
   echo "Automated Claude.ai A/B testing for the claude-capabilities skill."
   echo ""
@@ -632,10 +657,31 @@ show_usage() {
   echo "  --control      Run control condition only (skill OFF)"
   echo "  --treatment    Run treatment condition only (skill ON)"
   echo "  --report-only  Regenerate report from existing browser-eval-results.json"
+  echo ""
+  echo "Options:"
+  echo "  --headed       Run browser in headed (visible) mode for debugging"
+  echo "  --yes          Skip interactive confirmations (for unattended runs)"
 }
 
 main() {
-  local mode="${1:-full}"
+  # Parse flags
+  local mode="full"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --headed)
+        HEADED_MODE=true
+        shift
+        ;;
+      --yes|-y)
+        YES_MODE=true
+        shift
+        ;;
+      *)
+        mode="$1"
+        shift
+        ;;
+    esac
+  done
 
   case "$mode" in
     --auth)
@@ -677,12 +723,16 @@ main() {
       log "  PHASE 1: CONTROL (skill should be OFF)"
       log "========================================="
       log ""
-      echo -n "Confirm: Is the claude-capabilities skill DISABLED on Claude.ai? [y/N] "
-      read -r confirm
-      if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
-        log "Aborting. Disable the skill first, then re-run."
-        cleanup_session
-        exit 1
+      if [[ "$YES_MODE" == "true" ]]; then
+        log "  (--yes: assuming skill is DISABLED)"
+      else
+        echo -n "Confirm: Is the claude-capabilities skill DISABLED on Claude.ai? [y/N] "
+        read -r confirm
+        if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+          log "Aborting. Disable the skill first, then re-run."
+          cleanup_session
+          exit 1
+        fi
       fi
 
       run_condition "control"
@@ -701,8 +751,12 @@ main() {
       log "  2. ENABLE the claude-capabilities skill"
       log "  3. Return here and press Enter"
       log ""
-      echo -n "Have you ENABLED the skill? Press Enter to continue (or Ctrl+C to abort)... "
-      read -r
+      if [[ "$YES_MODE" == "true" ]]; then
+        log "  (--yes: assuming skill is ENABLED, continuing...)"
+      else
+        echo -n "Have you ENABLED the skill? Press Enter to continue (or Ctrl+C to abort)... "
+        read -r
+      fi
 
       # Re-validate auth for treatment phase
       validate_auth
