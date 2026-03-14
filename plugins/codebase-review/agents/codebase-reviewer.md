@@ -245,6 +245,21 @@ your scope. For each file you read:
 
 Prioritise files with recent churn — they're most likely to contain fresh bugs.
 
+**Dead code check:** Before rating any finding above Low, verify the code has
+callers. Use Grep to search for references to the function/component. Code with
+zero callers should be rated Low regardless of how bad the pattern looks — it
+has no practical impact. Note the caller count in your finding.
+
+**Destructive operation cross-reference:** When reviewing any DELETE, destroy,
+remove, or cleanup operation, trace its downstream effects:
+- Check for FK CASCADE constraints in migration/schema files that may
+  cascade deletes to related tables
+- Check whether deleted data has audit, history, or compliance significance
+- Check whether the operation is reversible or permanent
+This requires reading files outside the immediate function — read the schema
+or migration files referenced by the delete operation even if they are at the
+edge of your scope.
+
 **Minimum coverage requirement:** You MUST read at least 50% of files in your
 scope by count. After reading all large files (>500 lines) and high-churn files,
 read remaining files in order of decreasing size until you reach the 50%
@@ -282,6 +297,8 @@ Write your findings to the output path specified in your prompt.
 **File:** `{file_path}`:{start_line}-{end_line}
 **Category:** {Bug | Pattern | Security | Architecture | Fragility}
 **Confidence:** {0-100}
+**Severity justification:** {One sentence explaining why this severity level
+and not one higher or lower. Reference the rubric criteria.}
 
 **Issue:**
 {1-3 sentences clearly describing the problem. Be specific — name the
@@ -303,15 +320,21 @@ UI crash, etc. Be concrete.}
 investigation — likely requires {approach}". If simple, show the fix.}
 ```
 
-**Severity levels:**
+**Severity rubric — use these criteria, not subjective judgement:**
 
-- 🔴 **Critical** — will cause data loss, security breach, or crash in
-  production. Must fix before shipping.
-- 🟠 **High** — bug that affects functionality but won't cause catastrophic
-  failure. Should fix soon.
-- 🟡 **Medium** — bad pattern or smell that increases maintenance burden or
-  future bug risk. Worth fixing when touching this code.
-- 🔵 **Low** — minor issue, worth noting but not urgent. Fix opportunistically.
+- 🔴 **Critical** — Data loss or corruption, security breach, compliance
+  violation (e.g. audit trail destruction), or broken production feature
+  affecting all users. The issue is actively causing harm or will on next
+  trigger.
+- 🟠 **High** — Silent data integrity issues, systemic pattern bypass (e.g.
+  validation guard skipped), or broken user-facing functionality in edge cases.
+  The issue causes wrong behaviour but requires specific conditions to trigger.
+- 🟡 **Medium** — Error handling gaps in non-critical paths, inconsistencies
+  between similar code paths, performance issues at current scale. The code
+  works but is fragile or misleading.
+- 🔵 **Low** — Unreachable edge cases, dead code with no callers, future-scale
+  concerns, marginal performance. The issue has no practical impact today but
+  represents technical debt.
 
 **Confidence scale:**
 

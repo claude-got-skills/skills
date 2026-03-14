@@ -121,10 +121,16 @@ grep -rn 'clipboard\.writeText\|clipboard\.readText' . \
   --include="*.ts" --include="*.tsx" --include="*.js" \
   2>/dev/null | grep -v node_modules | grep -v 'await'
 
-# .then() without .catch() (unhandled promise rejection)
+# .then() without .catch() (unhandled promise rejection) — comprehensive, no limit
 grep -rn '\.then(' . \
   --include="*.ts" --include="*.tsx" --include="*.js" \
-  2>/dev/null | grep -v node_modules | grep -v '\.catch\|await' | head -30
+  2>/dev/null | grep -v node_modules | grep -v '\.catch\|await' \
+  | grep -v '\.test\.\|\.spec\.\|__tests__'
+
+# Fire-and-forget async calls (.catch(console.error) pattern — silent failure)
+grep -rn '\.catch\s*(console\.\(log\|error\|warn\))' . \
+  --include="*.ts" --include="*.tsx" --include="*.js" \
+  2>/dev/null | grep -v node_modules | grep -v '\.test\.\|\.spec\.'
 ```
 
 ### Auth/status patterns
@@ -148,11 +154,53 @@ grep -rln 'export.*\(GET\|POST\|PUT\|DELETE\|PATCH\)' . \
 # 'as any' in production code (type safety bypass)
 grep -rn 'as any' . \
   --include="*.ts" --include="*.tsx" \
-  2>/dev/null | grep -v node_modules | grep -v '\.test\.\|\.spec\.\|\.d\.ts' | head -40
+  2>/dev/null | grep -v node_modules | grep -v '\.test\.\|\.spec\.\|\.d\.ts'
 
-# Non-null assertions (potential null dereference)
+# 'as never' / 'as unknown' casts (masking type mismatches)
+grep -rn 'as never\|as unknown' . \
+  --include="*.ts" --include="*.tsx" \
+  2>/dev/null | grep -v node_modules | grep -v '\.test\.\|\.spec\.\|\.d\.ts'
+
+# Non-null assertions (potential null dereference) — sample if >50 matches
 grep -rn '\!\.' . --include="*.ts" --include="*.tsx" \
-  2>/dev/null | grep -v node_modules | grep -v '\.test\.\|\.spec\.' | head -30
+  2>/dev/null | grep -v node_modules | grep -v '\.test\.\|\.spec\.'
+```
+
+### Database / schema patterns
+
+```bash
+# ON DELETE CASCADE in migrations (may destroy audit trails or related data)
+grep -rn 'ON DELETE CASCADE' . \
+  --include="*.sql" --include="*.py" --include="*.ts" \
+  2>/dev/null | grep -v node_modules
+
+# DELETE/DROP operations without soft-delete pattern
+grep -rn '\.delete(\|DROP TABLE\|TRUNCATE' . \
+  --include="*.ts" --include="*.tsx" --include="*.sql" \
+  2>/dev/null | grep -v node_modules | grep -v '\.test\.\|\.spec\.\|__tests__'
+```
+
+### Code quality patterns
+
+```bash
+# console.log/debug/info in production code (debug leak)
+grep -rn 'console\.\(log\|debug\|info\)' . \
+  --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" \
+  2>/dev/null | grep -v node_modules | grep -v '\.test\.\|\.spec\.\|__tests__'
+
+# Python except Exception with no logging (silent swallow vs logged swallow)
+grep -rn 'except.*Exception' . --include="*.py" 2>/dev/null \
+  | grep -v __pycache__ | grep -v '\.test'
+```
+
+### Accessibility patterns
+
+```bash
+# onClick on non-interactive elements (div/span with click but no keyboard/role)
+grep -rn 'onClick' . \
+  --include="*.tsx" --include="*.jsx" \
+  2>/dev/null | grep -v node_modules | grep -v '\.test\.\|\.spec\.' \
+  | grep '<div\|<span\|<li' | grep -v 'role=\|tabIndex\|onKeyDown'
 ```
 
 ### Known Risk Patterns (from CLAUDE.md gotchas)
