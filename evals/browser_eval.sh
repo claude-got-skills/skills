@@ -304,48 +304,99 @@ extract_response() {
 }
 
 extract_thinking() {
-  # Try to expand and extract the thinking panel content
-  local thinking_text=""
+  # Extract the thinking panel summary and (if possible) expanded content.
+  #
+  # Claude.ai renders the thinking panel as:
+  #   - button "<summary text>" [ref=eNN]        ← clickable toggle
+  #   - status: <summary text>                   ← visible status line
+  # The summary text is a sentence (e.g. "Examined Claude's cross-conversation
+  # memory limitations"), NOT a UI label like "Copy" or "Retry".
 
-  # First, try to find and click the thinking toggle/expand button
+  local thinking_text=""
   local snapshot
   snapshot=$(ab snapshot -i 2>/dev/null || echo "")
 
-  # Look for thinking-related elements in the snapshot
-  local thinking_ref
-  thinking_ref=$(echo "$snapshot" | grep -i 'think\|reasoning' | head -1 | grep -oE 'ref=e[0-9]+' | head -1 | sed 's/ref=//' || echo "")
+  # Strategy 1: Find the thinking toggle via the "status:" line in the
+  # accessibility snapshot. The status element only appears for thinking summaries.
+  local thinking_ref=""
+  local thinking_summary=""
 
-  if [[ -n "$thinking_ref" ]]; then
-    log "  Found thinking panel toggle: $thinking_ref"
-    ab click "$thinking_ref" 2>/dev/null || true
-    sleep 1
+  if [[ -n "$snapshot" ]]; then
+    # The status line sits right after the thinking button.
+    # Find the button ref from the line immediately before "- status:".
+    thinking_ref=$(echo "$snapshot" | grep -B1 '^\s*- status:' | grep 'button' | grep -oE 'ref=e[0-9]+' | head -1 | sed 's/ref=//' || echo "")
 
-    # Re-snapshot after expanding
-    snapshot=$(ab snapshot -i 2>/dev/null || echo "")
+    # Extract the summary text from the status line
+    thinking_summary=$(echo "$snapshot" | grep '^\s*- status:' | head -1 | sed 's/.*- status: *//' || echo "")
   fi
 
-  # Extract thinking text via JavaScript
-  thinking_text=$(ab eval "
-    (function() {
-      var selectors = [
-        '[data-testid=\"thinking-content\"]',
-        'div[class*=\"thinking\"]',
-        'div[class*=\"reasoning\"]',
-        'details[class*=\"think\"] div',
-        'div[class*=\"thought\"]'
-      ];
-      for (var i = 0; i < selectors.length; i++) {
-        var els = document.querySelectorAll(selectors[i]);
-        if (els.length > 0) {
-          var parts = [];
-          for (var j = 0; j < els.length; j++) parts.push(els[j].innerText);
-          var text = parts.join('\n');
-          if (text && text.trim().length > 0) return text;
+  if [[ -n "$thinking_ref" ]]; then
+    log "  Found thinking toggle: $thinking_ref (summary: $(echo "$thinking_summary" | cut -c1-60)...)"
+
+    # Click to expand the thinking panel
+    ab click "$thinking_ref" 2>/dev/null || true
+    sleep 2
+
+    # Try to extract the expanded thinking content via JS
+    # After expansion, Claude.ai renders the full thinking in a container
+    # adjacent to or inside the button's expanded region.
+    thinking_text=$(ab eval "
+      (function() {
+        // Strategy A: Look for expanded thinking containers by common patterns
+        var selectors = [
+          '[data-testid=\"thinking-content\"]',
+          '[data-testid=\"thinking-text\"]',
+          '[aria-expanded=\"true\"] + div',
+          'div[class*=\"thinking\"]',
+          'div[class*=\"reasoning\"]',
+          'details[open] div',
+          'div[class*=\"thought\"]',
+          'div[class*=\"extended-thinking\"]'
+        ];
+        for (var i = 0; i < selectors.length; i++) {
+          var els = document.querySelectorAll(selectors[i]);
+          if (els.length > 0) {
+            var parts = [];
+            for (var j = 0; j < els.length; j++) {
+              var t = els[j].innerText;
+              if (t && t.trim().length > 20) parts.push(t);
+            }
+            var text = parts.join('\n');
+            if (text && text.trim().length > 20) return text;
+          }
         }
-      }
-      return '';
-    })()
-  " 2>/dev/null || echo "")
+
+        // Strategy B: After clicking the toggle, look for any newly visible
+        // large text block that wasn't in the response area
+        var buttons = document.querySelectorAll('button[aria-expanded=\"true\"]');
+        for (var i = 0; i < buttons.length; i++) {
+          var next = buttons[i].nextElementSibling;
+          if (next && next.innerText && next.innerText.trim().length > 20) {
+            return next.innerText;
+          }
+          // Check inside the button's parent for expanded content
+          var parent = buttons[i].parentElement;
+          if (parent) {
+            var children = parent.children;
+            for (var j = 0; j < children.length; j++) {
+              if (children[j] !== buttons[i] && children[j].innerText &&
+                  children[j].innerText.trim().length > 20) {
+                return children[j].innerText;
+              }
+            }
+          }
+        }
+
+        return '';
+      })()
+    " 2>/dev/null || echo "")
+  fi
+
+  # If JS extraction failed but we have the summary, return that
+  if [[ -z "$thinking_text" || "$thinking_text" == '""' ]] && [[ -n "$thinking_summary" ]]; then
+    log "  Using thinking summary (expanded content not extracted)"
+    thinking_text="[Thinking summary] $thinking_summary"
+  fi
 
   echo "$thinking_text"
 }
