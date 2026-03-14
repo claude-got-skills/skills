@@ -92,6 +92,21 @@ Evaluated against a baseline (no skill) across 43 test prompts in 8 categories u
 - **Tier 1 (always-on)**: `data/quick-reference.md` (~90 lines, ~1.2K tokens) injected via SessionStart hook into every session. Covers current models, capability composition patterns, platform availability, and key API parameters.
 - **Tier 2 (on-demand)**: Full `SKILL.md` + 5 reference files (~2,700 lines) loaded by Claude when deeper detail is needed — API examples, agent SDK, tool configurations, migration guides.
 
+## Also in this repo
+
+### Codebase Review Plugin
+
+Full codebase quality review using parallel analysis agents with adversarial
+verification. Partitions your codebase across N scope agents, runs a cross-cutting
+pattern checker, triages and deduplicates findings, then adversarially verifies
+Critical/High findings before producing a ranked report.
+
+See [`plugins/codebase-review/`](plugins/codebase-review/) for full documentation.
+
+```
+/plugin install claude-got-skills@codebase-review
+```
+
 ## License
 
 MIT

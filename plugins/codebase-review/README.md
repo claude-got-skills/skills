@@ -19,24 +19,46 @@ Runs a multi-wave review of your entire codebase:
 5. **Final report** — produces a ranked, verified report in
    `.planning/reviews/YYYY-MM-DD/REVIEW-REPORT.md`
 
+## Requirements
+
+- **Claude Code** (Anthropic's CLI tool)
+- **Claude Opus access** — the orchestrator uses Opus for coordination logic.
+  Subagents inherit the parent model.
+
+### What to expect
+
+The plugin spawns multiple parallel subagents (typically 4-8 review agents +
+1 pattern checker + 1-3 verification agents) across 5 sequential waves. A
+review of a ~100K-line codebase takes approximately 15-20 minutes and uses
+significant context across all agents. On a Claude Max subscription, this
+counts toward your usage. On API billing, costs scale with codebase size and
+agent count.
+
+The `--thorough` flag roughly doubles both time and usage by running two
+passes with different partition strategies.
+
 ## Installation
 
-### From local path
+### From the claude-got-skills marketplace
 
-```bash
-# Symlink the plugin into your local marketplace
-ln -s /path/to/codebase-review-plugin \
-  ~/.claude/plugins/marketplaces/local/plugins/codebase-review
+```
+/plugin marketplace add claude-got-skills/skills
+/plugin install claude-got-skills@codebase-review
 ```
 
-Then add it to your local marketplace manifest
-(`~/.claude/plugins/marketplaces/local/marketplace.json`) and enable it in
-Claude Code settings, or use `/plugin` to install from the marketplace.
+### From a local clone
 
-### From a git repository
+```bash
+git clone https://github.com/claude-got-skills/skills.git
+cd skills
+# The plugin is at plugins/codebase-review/
+```
 
-If published to a git repo, install via the plugin marketplace or clone and
-symlink as above.
+Then in Claude Code:
+
+```
+/plugin install /path/to/skills/plugins/codebase-review
+```
 
 After installation, run `/reload-plugins` to activate.
 
