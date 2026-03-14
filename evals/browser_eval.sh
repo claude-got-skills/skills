@@ -35,24 +35,57 @@ SCREENSHOT_DIR=""      # set after RESULTS_DIR is created
 HEADED_MODE=false      # --headed: run eval in headed (visible) browser
 YES_MODE=false         # --yes: skip interactive confirmations
 
-# --- Test Prompts (P1-P5) ----------------------------------------------------
+# --- Test Prompts (P1-P15) ---------------------------------------------------
+# 15 prompts selected from the 65-test eval suite for maximum browser eval value.
+# Prioritized by skill lift, category coverage, and naturalness on Claude.ai.
 # Stored as parallel indexed arrays for bash 3.2 compatibility.
 
-PROMPT_COUNT=5
+PROMPT_COUNT=15
 
 PROMPT_IDS_0="P1"; PROMPT_IDS_1="P2"; PROMPT_IDS_2="P3"; PROMPT_IDS_3="P4"; PROMPT_IDS_4="P5"
+PROMPT_IDS_5="P6"; PROMPT_IDS_6="P7"; PROMPT_IDS_7="P8"; PROMPT_IDS_8="P9"; PROMPT_IDS_9="P10"
+PROMPT_IDS_10="P11"; PROMPT_IDS_11="P12"; PROMPT_IDS_12="P13"; PROMPT_IDS_13="P14"; PROMPT_IDS_14="P15"
 
-PROMPT_CATEGORIES_0="Vision / PDF"
-PROMPT_CATEGORIES_1="API Features"
-PROMPT_CATEGORIES_2="Model Selection"
-PROMPT_CATEGORIES_3="Platform Comparison"
-PROMPT_CATEGORIES_4="Product Capabilities"
+PROMPT_CATEGORIES_0="Hallucination Detection"
+PROMPT_CATEGORIES_1="Hallucination Detection"
+PROMPT_CATEGORIES_2="Can Claude Do X"
+PROMPT_CATEGORIES_3="Can Claude Do X"
+PROMPT_CATEGORIES_4="Can Claude Do X"
+PROMPT_CATEGORIES_5="Extension Awareness"
+PROMPT_CATEGORIES_6="Extension Awareness"
+PROMPT_CATEGORIES_7="Cross-Platform Awareness"
+PROMPT_CATEGORIES_8="Cross-Platform Awareness"
+PROMPT_CATEGORIES_9="Model Selection"
+PROMPT_CATEGORIES_10="Architecture Decisions"
+PROMPT_CATEGORIES_11="Implementation Guidance"
+PROMPT_CATEGORIES_12="Competitor Migration"
+PROMPT_CATEGORIES_13="Conversational Platform"
+PROMPT_CATEGORIES_14="Conversational Platform"
 
-PROMPT_TEXTS_0="I want to send product photos and a PDF spec sheet to Claude through the API. What image and PDF formats are supported, what are the limits, and how do I send them?"
-PROMPT_TEXTS_1="What's the difference between extended thinking and adaptive thinking? When should I use each?"
-PROMPT_TEXTS_2="I need the right Claude model for a customer support chatbot - it needs to be fast, cheap, and accurate. What do you recommend?"
-PROMPT_TEXTS_3="I built a skill for Claude Code. How do I get the same skill working on Claude.ai and Claude Desktop? What differences should I expect?"
-PROMPT_TEXTS_4="Can Claude remember what we talked about last week in a different conversation?"
+# Hallucination tests first (most dramatic control/treatment differences)
+PROMPT_TEXTS_0="Does Claude remember things between conversations by default? I've been chatting with it for weeks and want to make sure it knows my preferences."
+PROMPT_TEXTS_1="I have a production system using Claude Sonnet 3.7. A teammate says we need to migrate urgently. Is Sonnet 3.7 still available? What should we move to?"
+# Can Claude Do X
+PROMPT_TEXTS_2="Can I get Claude to remember things between separate conversations? I'm building a tool where Claude helps with ongoing projects and it's frustrating that it loses context each time."
+PROMPT_TEXTS_3="Is there a way to make Claude use tools without me having to define every single one upfront? I have hundreds of MCP tools and the context window overhead is killing me."
+PROMPT_TEXTS_4="I heard Claude can now review my pull requests automatically. How does Code Review work? What does it check and how much does it cost?"
+# Extension Awareness
+PROMPT_TEXTS_5="Every time I edit a Python file, I want to make sure it passes our linting rules and type checks. Right now I keep forgetting to run the checks. Is there a way to automate this?"
+PROMPT_TEXTS_6="My team discusses bugs in Slack and then someone has to context-switch to fix them. Is there a way to go straight from a Slack conversation to a code fix?"
+# Cross-Platform Awareness
+PROMPT_TEXTS_7="I installed a skill on Claude.ai by uploading a ZIP file. It works when I ask about the topic, but I can't figure out how to invoke it directly by name. Is there a way to trigger a specific skill on demand?"
+PROMPT_TEXTS_8="I'm on Claude.ai and I want to build a multi-step workflow where Claude reviews code, runs tests, and then creates a PR. Is this possible on Claude.ai, or do I need something else?"
+# Model Selection
+PROMPT_TEXTS_9="I need to choose the right Claude model for my app. It needs to handle long documents - 200+ pages - produce detailed analysis, and keep costs reasonable. What would you recommend?"
+# Architecture Decisions
+PROMPT_TEXTS_10="I need to build a quality assurance system that reviews AI-generated content before it goes to customers. The system should check for accuracy, tone, and compliance with our style guide. How would I architect this?"
+# Implementation Guidance
+PROMPT_TEXTS_11="I have a working Claude integration that uses assistant message prefilling to start responses in a specific format. I want to upgrade to Opus 4.6. Anything I should know?"
+# Competitor Migration
+PROMPT_TEXTS_12="My company uses ChatGPT Teams with custom GPTs. We're considering switching to Claude. What's the equivalent of custom GPTs in the Claude ecosystem?"
+# Conversational Platform
+PROMPT_TEXTS_13="I need to create a PowerPoint presentation for a client pitch and an Excel spreadsheet with project costings. Can Claude actually generate these file types, or can it only do text?"
+PROMPT_TEXTS_14="We want Claude to learn our company's specific terminology and always follow our house style. Can we fine-tune Claude on our company data? What's the best way to customise it for our needs?"
 
 get_prompt_id() { eval echo "\$PROMPT_IDS_$1"; }
 get_prompt_category() { eval echo "\$PROMPT_CATEGORIES_$1"; }
@@ -82,6 +115,87 @@ ab_headed() {
 cleanup_session() {
   log "Closing browser session..."
   ab close 2>/dev/null || true
+}
+
+# --- Skill Toggle -------------------------------------------------------------
+
+SKILL_NAME="assistant-capabilities"
+SKILL_URL="https://claude.ai/customize/skills"
+
+toggle_skill() {
+  # Toggle the assistant-capabilities skill on or off.
+  # Args: "on" or "off"
+  local desired_state="$1"
+
+  log "Navigating to skill settings..."
+  ab open "$SKILL_URL" 2>/dev/null || { log_error "Failed to open skills page"; return 1; }
+  sleep 3
+
+  # Click the skill to select it (loads the detail pane with the toggle)
+  local snapshot
+  snapshot=$(ab snapshot 2>/dev/null || echo "")
+
+  # Check if skill detail is already showing (switch visible)
+  if ! echo "$snapshot" | grep -q 'switch.*Enable skill'; then
+    # Click the skill name to open its detail pane
+    local skill_ref
+    skill_ref=$(echo "$snapshot" | grep "button.*${SKILL_NAME}" | head -1 | grep -oE 'ref=e[0-9]+' | head -1 | sed 's/ref=//' || echo "")
+    if [[ -n "$skill_ref" ]]; then
+      ab click "$skill_ref" 2>/dev/null || true
+      sleep 2
+    fi
+  fi
+
+  # Read current state and toggle if needed
+  local current_state
+  current_state=$(ab eval "
+    (function() {
+      var el = document.querySelector('input[aria-label=\"Enable skill\"]');
+      if (!el) return 'NOT_FOUND';
+      return el.checked ? 'on' : 'off';
+    })()
+  " 2>/dev/null || echo "NOT_FOUND")
+  # Strip quotes from eval output
+  current_state=$(echo "$current_state" | tr -d '"')
+
+  if [[ "$current_state" == "NOT_FOUND" ]]; then
+    log_error "Could not find skill toggle switch"
+    return 1
+  fi
+
+  if [[ "$current_state" == "$desired_state" ]]; then
+    log "Skill already $desired_state"
+    return 0
+  fi
+
+  # Click the toggle
+  ab eval "
+    (function() {
+      var el = document.querySelector('input[aria-label=\"Enable skill\"]');
+      if (el) { el.click(); return 'clicked'; }
+      return 'not_found';
+    })()
+  " 2>/dev/null || true
+  sleep 2
+
+  # Verify
+  local new_state
+  new_state=$(ab eval "
+    (function() {
+      var el = document.querySelector('input[aria-label=\"Enable skill\"]');
+      if (!el) return 'NOT_FOUND';
+      return el.checked ? 'on' : 'off';
+    })()
+  " 2>/dev/null || echo "NOT_FOUND")
+  new_state=$(echo "$new_state" | tr -d '"')
+
+  if [[ "$new_state" == "$desired_state" ]]; then
+    log "Skill toggled to: $desired_state"
+    return 0
+  else
+    log_error "Skill toggle failed (wanted $desired_state, got $new_state)"
+    return 1
+  fi
 }
 
 # --- Auth Flow ----------------------------------------------------------------
@@ -775,20 +889,27 @@ main() {
 
       log ""
       log "========================================="
-      log "  PHASE 1: CONTROL (skill should be OFF)"
+      log "  PHASE 1: CONTROL (skill OFF)"
       log "========================================="
       log ""
-      if [[ "$YES_MODE" == "true" ]]; then
-        log "  (--yes: assuming skill is DISABLED)"
-      else
-        echo -n "Confirm: Is the claude-capabilities skill DISABLED on Claude.ai? [y/N] "
-        read -r confirm
-        if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
-          log "Aborting. Disable the skill first, then re-run."
+
+      # Auto-toggle skill OFF
+      log "Disabling skill for control condition..."
+      if ! toggle_skill "off"; then
+        log_error "Failed to disable skill automatically."
+        if [[ "$YES_MODE" != "true" ]]; then
+          echo -n "Manually disable the skill, then press Enter (or Ctrl+C to abort)... "
+          read -r
+        else
+          log_error "Cannot proceed in --yes mode without working toggle. Aborting."
           cleanup_session
           exit 1
         fi
       fi
+
+      # Navigate back to chat for the eval
+      ab open "https://claude.ai/new" 2>/dev/null || true
+      sleep 3
 
       run_condition "control"
 
@@ -798,29 +919,30 @@ main() {
 
       log ""
       log "========================================="
-      log "  SKILL TOGGLE CHECKPOINT"
+      log "  PHASE 2: TREATMENT (skill ON)"
       log "========================================="
       log ""
-      log "Control phase complete. Now:"
-      log "  1. Go to Claude.ai Settings > Profiles & Skills"
-      log "  2. ENABLE the claude-capabilities skill"
-      log "  3. Return here and press Enter"
-      log ""
-      if [[ "$YES_MODE" == "true" ]]; then
-        log "  (--yes: assuming skill is ENABLED, continuing...)"
-      else
-        echo -n "Have you ENABLED the skill? Press Enter to continue (or Ctrl+C to abort)... "
-        read -r
-      fi
 
       # Re-validate auth for treatment phase
       validate_auth
 
-      log ""
-      log "========================================="
-      log "  PHASE 2: TREATMENT (skill should be ON)"
-      log "========================================="
-      log ""
+      # Auto-toggle skill ON
+      log "Enabling skill for treatment condition..."
+      if ! toggle_skill "on"; then
+        log_error "Failed to enable skill automatically."
+        if [[ "$YES_MODE" != "true" ]]; then
+          echo -n "Manually enable the skill, then press Enter (or Ctrl+C to abort)... "
+          read -r
+        else
+          log_error "Cannot proceed in --yes mode without working toggle. Aborting."
+          cleanup_session
+          exit 1
+        fi
+      fi
+
+      # Navigate back to chat for the eval
+      ab open "https://claude.ai/new" 2>/dev/null || true
+      sleep 3
 
       run_condition "treatment"
 
