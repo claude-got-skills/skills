@@ -1,110 +1,108 @@
-# Claude Capabilities Awareness
+# claude-got-skills
 
-A plugin and skill that gives Claude comprehensive, accurate knowledge about its capabilities across all platforms — Claude.ai, Claude Desktop, Claude Code, CoWork, and the API.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-plugins-blueviolet)]()
+[![GitHub last commit](https://img.shields.io/github/last-commit/claude-got-skills/skills)]()
 
-## Why this skill exists
+Plugins and skills for Claude Code that extend what Claude can do — from
+keeping its knowledge current to running full codebase quality reviews.
 
-Claude's training data has a cutoff. New features — adaptive thinking, dynamic filtering, fast mode, the memory tool, agent teams, the skills ecosystem, and more — ship faster than training data updates. Without this skill, Claude may give outdated or vague answers about what it can do.
+## Quick install
 
-With this plugin installed, Claude has capabilities knowledge injected at every session start (via a SessionStart hook), plus an on-demand skill for deeper questions. Claude can accurately recommend the right model for a workload, explain how capabilities compose, suggest the right extension pattern for a user's platform, and cite specific API parameters and headers.
-
-## What it covers
-
-- **Current models**: Opus 4.6, Sonnet 4.6, Haiku 4.5 — context windows, output limits, thinking modes, pricing
-- **Core capabilities**: Vision/images, PDF processing, multilingual, streaming
-- **Thinking & reasoning**: Adaptive thinking, effort parameter, fast mode, 128K output
-- **Context & memory**: 1M context, memory tool, compaction, automatic caching
-- **Tools & integration**: Tool search, MCP connector, programmatic tool calling, dynamic filtering, code execution
-- **Structured outputs**: Guaranteed JSON, Files API, citations, Agent Skills
-- **Platform overview**: What's available on Claude.ai vs Desktop vs Claude Code vs CoWork vs API
-- **Extension patterns**: Skills, hooks, plugins, CLAUDE.md, Projects, MCP — with platform availability matrix
-- **Architecture patterns**: Subagents vs tool chaining, batch vs streaming, model tiering, multi-agent coordination
-- **Breaking changes**: Opus 4.6 prefill removal, model retirements, GA promotions
-- **Common misconceptions**: No embeddings, no fine-tuning, no default memory, no default internet
-
-Reference files provide deeper detail with code examples for API features, tool types, agent capabilities, model specifics, and Claude Code specifics.
-
-## Installation
-
-**Claude Code (full plugin — recommended, always-on capabilities + on-demand skill):**
 ```
 /plugin marketplace add claude-got-skills/skills
-/plugin install claude-got-skills@claude-got-skills
 ```
 
-**Claude Code (skill only — on-demand, no SessionStart hook):**
+Then install whichever plugins you need:
+
+| Plugin | What it does | Install |
+|--------|-------------|---------|
+| **Assistant Capabilities** | Keeps Claude's knowledge of its own features accurate and current across all platforms | `/plugin install claude-got-skills@assistant-capabilities` |
+| **Codebase Review** | Multi-agent codebase quality review with parallel analysis and adversarial verification | `/plugin install claude-got-skills@codebase-review` |
+
+Skills can also be installed standalone via [skills.sh](https://skills.sh):
+
 ```bash
 npx skills add claude-got-skills/skills@assistant-capabilities
 ```
 
-**Claude.ai / Claude Desktop (skill only):**
-1. Download the skill as a ZIP file
-2. Go to Settings > Capabilities > Skills
-3. Click "Upload skill" and select the ZIP
+---
 
-## Eval results (v2.3.0)
+## Assistant Capabilities
 
-Evaluated against a baseline (no skill) across 43 test prompts in 8 categories using Haiku 4.5 (no web search). Accuracy scores shown (0–7 scale).
+Claude's training data has a cutoff. New features ship faster than training
+data updates. This plugin ensures Claude has accurate, current knowledge of
+its own capabilities — models, pricing, API features, extension patterns,
+platform availability, and more.
 
-| Category | Tests | Control | Tier 1 | Tier 1 Lift | Full Skill | Full Lift |
-|----------|-------|---------|--------|-------------|------------|-----------|
-| Architecture Decisions | 3 | 1.67 | 3.00 | +80% | 3.33 | **+100%** |
-| Can Claude Do X | 5 | 2.40 | 2.60 | +8% | 4.20 | **+75%** |
-| Implementation Guidance | 8 | 2.12 | 4.25 | +100% | 4.62 | **+118%** |
-| Model Selection | 1 | 1.00 | 5.00 | +400% | 6.00 | **+500%** |
-| Extension Awareness | 8 | 1.88 | 2.88 | +53% | 4.25 | **+126%** |
-| Hallucination Detection | 5 | 1.20 | 3.20 | +167% | 3.20 | **+167%** |
-| Cross-Platform Awareness | 10 | 1.60 | 3.60 | +125% | 4.10 | **+156%** |
-| **Negative (regression check)** | **3** | **4.67** | **5.00** | +7% | **4.33** | **-7% (noise)** |
+**How it works:** A two-tier architecture injects a condensed reference (~90
+lines) into every session via a SessionStart hook, with a full on-demand skill
+(2,700+ lines across 6 reference files) loaded when deeper detail is needed.
 
-**Tier 1** = `quick-reference.md` only (SessionStart hook, ~1.2K tokens, always-on). **Full Skill** = SKILL.md + references (on-demand). Tier 1 delivers 50–70% of the full skill's lift at 61% lower token cost.
+**Evaluated results:** Tested against a baseline (no skill) across 43 prompts
+using Haiku 4.5. The always-on tier delivers +80-167% accuracy lift across
+categories; the full skill delivers +75-500% lift.
+
+| Category | Baseline | With Plugin | Lift |
+|----------|----------|-------------|------|
+| Architecture Decisions | 1.67 | 3.33 | +100% |
+| Implementation Guidance | 2.12 | 4.62 | +118% |
+| Cross-Platform Awareness | 1.60 | 4.10 | +156% |
+| Hallucination Detection | 1.20 | 3.20 | +167% |
+
+See the [full skill documentation](skills/assistant-capabilities/SKILL.md) for
+what it covers.
+
+---
+
+## Codebase Review
+
+Runs a 5-wave review of your entire codebase using parallel analysis agents:
+
+```
+Reconnaissance  -->  Parallel Review (N agents)  -->  Triage  -->  Verification  -->  Report
+                     + Pattern Checker
+```
+
+1. **Reconnaissance** — measures the codebase, runs deterministic tools
+   (ESLint, tsc, ast-grep), calculates optimal partitions
+2. **Parallel review** — spawns N scope-partitioned agents + 1 cross-cutting
+   pattern checker
+3. **Triage** — deduplicates and ranks findings by severity and confidence
+4. **Verification** — adversarially tries to disprove each Critical/High finding
+5. **Final report** — ranked, verified report with machine-readable JSON output
+
+**What it finds:** Bugs, silent failures, security vulnerabilities, error
+swallowing, race conditions, architectural smells, and systemic anti-patterns
+across your codebase.
+
+**What it costs:** On a Claude Max subscription, a review of a ~100K-line
+codebase takes approximately 15-20 minutes using 4-8 review agents + 1-3
+verification agents. The `--thorough` flag roughly doubles this for higher
+finding coverage.
+
+See the [full plugin documentation](plugins/codebase-review/README.md) for
+installation, usage, and output details.
+
+---
 
 ## Structure
 
 ```
-├── .claude-plugin/
-│   ├── plugin.json                   # Plugin manifest (hooks, metadata)
-│   └── marketplace.json              # Skill discovery for npx skills add
-├── hooks/
-│   └── hooks.json                    # SessionStart hook for always-on injection
-├── scripts/
-│   └── inject-capabilities.sh        # Injects quick-reference into session context
-├── data/
-│   └── quick-reference.md            # Condensed capabilities (~90 lines, Tier 1)
-├── skills/
-│   └── assistant-capabilities/
-│       ├── SKILL.md                  # Full skill (~270 lines, Tier 2)
-│       └── references/
-│           ├── agent-capabilities.md # Agent SDK, subagents, hooks, plugins
-│           ├── api-features.md       # API params, vision, PDFs, streaming, caching
-│           ├── claude-code-specifics.md # Background tasks, /loop, teams, Chrome, CLI
-│           ├── model-specifics.md    # Pricing, feature matrices, migration guides
-│           └── tool-types.md         # Built-in tools, dynamic filtering, compatibility
-├── evals/
-│   ├── eval_runner.py                # Control/treatment API eval with LLM judge
-│   ├── browser_eval.sh              # Claude.ai A/B testing via agent-browser
-│   └── browser_eval_report.py       # Report generator for browser eval
-├── knowledge-base/                   # Source docs from Anthropic documentation
-```
-
-### Two-tier architecture
-
-- **Tier 1 (always-on)**: `data/quick-reference.md` (~90 lines, ~1.2K tokens) injected via SessionStart hook into every session. Covers current models, capability composition patterns, platform availability, and key API parameters.
-- **Tier 2 (on-demand)**: Full `SKILL.md` + 5 reference files (~2,700 lines) loaded by Claude when deeper detail is needed — API examples, agent SDK, tool configurations, migration guides.
-
-## Also in this repo
-
-### Codebase Review Plugin
-
-Full codebase quality review using parallel analysis agents with adversarial
-verification. Partitions your codebase across N scope agents, runs a cross-cutting
-pattern checker, triages and deduplicates findings, then adversarially verifies
-Critical/High findings before producing a ranked report.
-
-See [`plugins/codebase-review/`](plugins/codebase-review/) for full documentation.
-
-```
-/plugin install claude-got-skills@codebase-review
+.claude-plugin/
+  marketplace.json            # Marketplace catalogue
+  plugin.json                 # Root plugin manifest
+hooks/                        # SessionStart hook (capabilities injection)
+scripts/                      # Hook scripts
+data/                         # Condensed capabilities reference (Tier 1)
+skills/
+  assistant-capabilities/     # Full capabilities skill (Tier 2)
+plugins/
+  codebase-review/            # Multi-agent codebase review plugin
+    agents/                   # 4 agent definitions
+    commands/                 # Slash command
+    references/               # ast-grep starter rules
+evals/                        # Evaluation framework
 ```
 
 ## License
