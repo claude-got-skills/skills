@@ -1,12 +1,12 @@
 {
   "name": "claude-got-skills",
   "version": "2.5.0",
-  "description": "Always-on Claude capabilities awareness — ensures Claude knows what it can do, how features compose, and which platform supports what.",
+  "description": "Claude Code plugins and skills by claude-got-skills",
   "author": {
     "name": "claude-got-skills"
   },
   "homepage": "https://github.com/claude-got-skills/skills",
   "repository": "https://github.com/claude-got-skills/skills",
   "license": "MIT",
-  "keywords": ["capabilities", "models", "api", "platform", "skills"]
+  "keywords": ["capabilities", "models", "api", "platform", "skills", "code-review", "codebase-audit", "static-analysis", "multi-agent", "developer-tools"]
 }
