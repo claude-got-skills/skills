@@ -12,13 +12,18 @@ __pycache__/
 # Eval raw results and reports (keep scripts only)
 evals/eval-results-*.json
 evals/eval-report-*.md
+evals/browser-eval-report-*.md
 evals/v1.4.0-eval-report.md
+evals/*.zip
 
 # Development artifacts (archived to private repo)
 docs/
 launchd/
 pipeline/
 monitoring/
+
+# Source knowledge base (build-time input, not shipped)
+knowledge-base/
 
 # Firecrawl scrape cache
 .firecrawl/
