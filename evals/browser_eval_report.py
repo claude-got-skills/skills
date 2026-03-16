@@ -20,17 +20,37 @@ from pathlib import Path
 
 # --- Detection Patterns -------------------------------------------------------
 
-SKILL_TRIGGER_PATTERNS = [
-    r"check product self[- ]knowledge",
+# Patterns that specifically indicate OUR skill (assistant-capabilities)
+OUR_SKILL_PATTERNS = [
+    r"assistant.capabilities",            # skill name (with any separator)
     r"check assistant capabilities",
+    r"consult assistant capabilities",
+    r"assistant.capabilities skill",
+    # Content markers unique to our skill
+    r"tier.?[12]",                        # tier system is unique to our skill
+    r"reference file",                    # our skill uses reference files
+    r"SKILL\.md",                         # explicit reference to our skill file
+]
+
+# Patterns that indicate the BUILT-IN product self-knowledge
+BUILTIN_SKILL_PATTERNS = [
+    r"product self.knowledge",
+    r"check product self.knowledge",
+    r"self.knowledge skill",
+    r"product knowledge",
+]
+
+# Generic patterns (could be either, lower confidence)
+GENERIC_SKILL_PATTERNS = [
     r"capabilities skill",
     r"check.*skill.*for",
-    r"product knowledge",
-    r"self[- ]knowledge.*for",
-    r"skill.*reference",
-    r"reading.*skill",
     r"consult.*skill",
+    r"reading.*skill",
+    r"skill.*reference",
 ]
+
+# Legacy combined list for backward compatibility
+SKILL_TRIGGER_PATTERNS = OUR_SKILL_PATTERNS + BUILTIN_SKILL_PATTERNS + GENERIC_SKILL_PATTERNS
 
 WEB_SEARCH_PATTERNS = [
     r"web search",
@@ -52,26 +72,68 @@ WEB_SEARCH_EXCLUDE_PATTERNS = [
 
 
 def detect_skill_trigger(thinking: str) -> dict:
-    """Detect if the skill was triggered based on thinking text."""
+    """Detect if OUR skill (assistant-capabilities) was triggered.
+
+    Distinguishes between:
+    - assistant-capabilities (our installed skill)
+    - product self-knowledge (Claude.ai's built-in skill)
+    - ambiguous (generic skill references)
+    """
     if not thinking:
-        return {"triggered": False, "confidence": "no_thinking", "evidence": []}
-
-    thinking_lower = thinking.lower()
-    evidence = []
-
-    for pattern in SKILL_TRIGGER_PATTERNS:
-        matches = re.findall(pattern, thinking_lower)
-        if matches:
-            evidence.extend(matches)
-
-    if evidence:
         return {
-            "triggered": True,
-            "confidence": "high" if len(evidence) >= 2 else "medium",
-            "evidence": evidence[:3],  # cap at 3 examples
+            "triggered": False,
+            "which_skill": "unknown",
+            "confidence": "no_thinking",
+            "evidence": [],
         }
 
-    return {"triggered": False, "confidence": "low", "evidence": []}
+    thinking_lower = thinking.lower()
+
+    our_evidence = []
+    for pattern in OUR_SKILL_PATTERNS:
+        matches = re.findall(pattern, thinking_lower)
+        our_evidence.extend(matches)
+
+    builtin_evidence = []
+    for pattern in BUILTIN_SKILL_PATTERNS:
+        matches = re.findall(pattern, thinking_lower)
+        builtin_evidence.extend(matches)
+
+    generic_evidence = []
+    for pattern in GENERIC_SKILL_PATTERNS:
+        matches = re.findall(pattern, thinking_lower)
+        generic_evidence.extend(matches)
+
+    if our_evidence:
+        return {
+            "triggered": True,
+            "which_skill": "assistant-capabilities",
+            "confidence": "high" if len(our_evidence) >= 2 else "medium",
+            "evidence": our_evidence[:3],
+        }
+
+    if builtin_evidence:
+        return {
+            "triggered": True,
+            "which_skill": "product-self-knowledge",
+            "confidence": "high" if len(builtin_evidence) >= 2 else "medium",
+            "evidence": builtin_evidence[:3],
+        }
+
+    if generic_evidence:
+        return {
+            "triggered": True,
+            "which_skill": "ambiguous",
+            "confidence": "low",
+            "evidence": generic_evidence[:3],
+        }
+
+    return {
+        "triggered": False,
+        "which_skill": "none",
+        "confidence": "low",
+        "evidence": [],
+    }
 
 
 def detect_web_search(thinking: str) -> dict:
@@ -128,7 +190,8 @@ def generate_report(results_data: dict) -> str:
     lines.append(f"**Platform:** {metadata.get('platform', 'claude.ai')}")
     lines.append(f"**Prompts tested:** {metadata.get('prompt_count', len(results))}")
     lines.append("")
-    lines.append("> **Note:** n=5 is a qualitative assessment for directional insight,")
+    prompt_count_display = metadata.get("prompt_count", len(results))
+    lines.append(f"> **Note:** n={prompt_count_display} is a qualitative assessment for directional insight,")
     lines.append("> not a statistically significant comparison. Results should be")
     lines.append("> interpreted as indicative, not conclusive.")
     lines.append("")
@@ -136,8 +199,8 @@ def generate_report(results_data: dict) -> str:
     # Summary table
     lines.append("## Summary")
     lines.append("")
-    lines.append("| Prompt | Category | Skill Triggered? | Web Search (C/T) | Status |")
-    lines.append("|--------|----------|-------------------|-------------------|--------|")
+    lines.append("| Prompt | Category | Skill Triggered? | Which Skill | Web Search (C/T) | Status |")
+    lines.append("|--------|----------|-------------------|-------------|-------------------|--------|")
 
     analysis_details = []
 
@@ -164,6 +227,16 @@ def generate_report(results_data: dict) -> str:
         else:
             trigger_display = "NO"
 
+        # Which skill display
+        which_skill = treat_trigger.get("which_skill", "unknown")
+        skill_display = {
+            "assistant-capabilities": "ours",
+            "product-self-knowledge": "built-in",
+            "ambiguous": "ambiguous",
+            "none": "-",
+            "unknown": "?",
+        }.get(which_skill, which_skill)
+
         # Web search display
         ctrl_ws = "Y" if ctrl_search["used"] else ("?" if ctrl_search["confidence"] == "no_thinking" else "N")
         treat_ws = "Y" if treat_search["used"] else ("?" if treat_search["confidence"] == "no_thinking" else "N")
@@ -184,7 +257,7 @@ def generate_report(results_data: dict) -> str:
                 problems.append(f"T:{treat_status}")
             status = ", ".join(problems)
 
-        lines.append(f"| {pid} | {category} | {trigger_display} | {search_display} | {status} |")
+        lines.append(f"| {pid} | {category} | {trigger_display} | {skill_display} | {search_display} | {status} |")
 
         analysis_details.append({
             "pid": pid,
@@ -302,15 +375,22 @@ def generate_report(results_data: dict) -> str:
                 lines.append("")
 
     # Methodology note
+    backend = metadata.get("backend", "agent-browser")
+    prompt_count = metadata.get("prompt_count", len(results))
     lines.append("## Methodology")
     lines.append("")
-    lines.append("- **Tool:** agent-browser (automated headless browser)")
+    if backend == "chrome-cdp":
+        lines.append("- **Tool:** chrome-cdp (direct Chrome DevTools Protocol)")
+        lines.append("- **Browser:** User's existing Chrome session (remote debugging)")
+    else:
+        lines.append("- **Tool:** agent-browser (automated headless browser)")
     lines.append("- **Platform:** Claude.ai web interface")
     lines.append("- **Design:** Within-subject A/B (same prompts, skill OFF then ON)")
-    lines.append("- **Skill toggle:** Manual (user toggles between control/treatment phases)")
-    lines.append("- **Detection:** Skill triggering inferred from thinking panel keywords;")
-    lines.append("  web search inferred from thinking panel text. Both are heuristic-based.")
-    lines.append("- **Limitations:** n=5 prompts, qualitative assessment, potential confounds")
+    lines.append("- **Skill toggle:** Automated via DOM interaction")
+    lines.append("- **Skill detection:** Distinguishes assistant-capabilities (our skill) from")
+    lines.append("  product-self-knowledge (built-in). Based on thinking panel keyword patterns.")
+    lines.append("- **Detection:** Web search inferred from thinking panel text. Both heuristic-based.")
+    lines.append(f"- **Limitations:** n={prompt_count} prompts, qualitative assessment, potential confounds")
     lines.append("  from time gap between conditions and DOM extraction reliability.")
     lines.append("")
 
