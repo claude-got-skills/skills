@@ -120,7 +120,8 @@ persistent context. MCP Apps supported for interactive UIs.
 **Claude Code** (CLI, VS Code, JetBrains, Desktop app): Full extension system —
 skills (including 5 bundled: `/simplify`, `/batch`, `/debug`, `/loop`, `/claude-api`),
 plugins, hooks (shell + HTTP), subagents, agent teams, MCP, CLAUDE.md + `.claude/rules/`.
-Background tasks (`Ctrl+B`), `/loop` scheduling, cron tools. **Code Review** (managed
+Background tasks (`Ctrl+B`), `/loop` scheduling, cron tools. `/btw` for side questions
+(forks context, no tools, single-turn overlay — never enters conversation history). **Code Review** (managed
 PR review, Teams/Enterprise, $15-25/review). **Remote Control** (`claude remote-control`
 or `/rc` — continue from phone/browser). **Web sessions** (`--remote` to start,
 `/teleport` to pull back). **Slack** (@Claude → auto Code sessions).

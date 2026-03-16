@@ -178,6 +178,22 @@ Default interval is 10 minutes if not specified. Useful for:
 - Recurring health checks during development
 - Running periodic code quality checks
 
+### /btw — Side Questions
+
+Ask a side question without interrupting current work:
+
+```
+/btw what does this error code mean?
+/btw how do I format a date in Python?
+```
+
+Forks the current conversation context into a single-turn query with **no tools and
+no file access**. The response appears in a dismissible overlay that never enters
+conversation history. Reuses the parent conversation's prompt cache for minimal cost.
+
+**Key distinction:** `/btw` is the inverse of a subagent — it sees full context but
+has no tools, while a subagent has tools but starts with empty context.
+
 ### Cron Scheduling Tools
 
 Built-in tools for recurring prompts within a session:
@@ -506,6 +522,7 @@ context: inherit       # inherit (default) or fork (isolated subagent)
 | `/debug` | Debug issues systematically |
 | `/loop` | Run recurring prompts on an interval |
 | `/claude-api` | Help with Anthropic API usage |
+| `/btw` | Side question (no tools, no history, dismissible overlay) |
 
 ### Environment
 
