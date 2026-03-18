@@ -60,11 +60,18 @@ Tests that assert incorrect values, codifying bugs as expected behaviour.
    grep -rn 'toBe(4[0-9][0-9])\|toBe(5[0-9][0-9])\|toBe(2[0-9][0-9])' \
      {test_dirs} --include="*.test.ts" --include="*.test.tsx" 2>/dev/null
    ```
-2. For each status assertion, read the test setup to determine the auth context:
+2. For each status assertion, read the test setup to determine the auth context.
+   **CRITICAL: Scope analysis to the same test block (`it()` / `test()` callback),
+   not by line proximity.** Adjacent test blocks often test different auth states
+   (e.g., one `it()` tests unauthenticated->401, the next tests viewer->403).
+   Matching auth setup to assertion by proximity alone produces massive false
+   positives (~70 in a 213-test-file codebase). You MUST verify the auth setup
+   and the assertion are within the same `it()`/`test()` block before flagging.
    - If `configureUnauthenticated` / `asUnauthenticated` / no auth setup
-     AND the assertion is `toBe(403)` -> likely wrong (should be 401)
-   - If a role is configured AND assertion is `toBe(401)` -> likely wrong
-     (should be 403 if the role lacks permission)
+     AND the assertion is `toBe(403)` **within the same test block** -> likely
+     wrong (should be 401)
+   - If a role is configured AND assertion is `toBe(401)` **within the same
+     test block** -> likely wrong (should be 403 if the role lacks permission)
 3. Check for cross-test consistency: if most tests assert 401 for
    unauthenticated and a few assert 403, the minority is suspect.
 4. Grep for status codes outside valid HTTP range (100-599):
@@ -78,6 +85,13 @@ corresponding route handler to check what it actually returns. If the
 production code returns 403 for unauthenticated requests AND the test
 asserts 403, both are wrong — report as a Bug finding against the
 production code, noting that the test codifies the bug.
+
+**False positive check:** Some APIs intentionally return 403 for
+unauthenticated requests (treating "not logged in" as "forbidden"). If
+the codebase is *consistent* in using 403 for unauthenticated across
+ALL routes, this may be a deliberate design choice — do NOT flag it.
+Only flag when the codebase is *inconsistent* (majority use 401 for
+unauthenticated, minority use 403 for the same scenario).
 
 ## Pattern 2: Mocking the System Under Test
 
@@ -145,15 +159,21 @@ Test assertion values changed in the same commit as production code changes.
 Tests for code that has zero production callers.
 
 **Search strategy:**
-1. If knip output is available from Wave 1, use it directly.
-2. Otherwise, for each test file, identify the module under test from imports.
-3. Grep for production-code imports of that module (excluding test files):
+1. If knip output is available from Wave 1, use it directly — this is the
+   most reliable method as it resolves the full import graph.
+2. Otherwise, check EVERY test file (not a sample). For each test file:
+   a. Read the first 20 lines to identify the module under test from imports
+      (look for `import ... from`, `await import(...)`, `require(...)`)
+   b. Resolve the module path (handle `@/` aliases, relative paths, index files)
+   c. Grep for production-code imports of that module:
    ```bash
    grep -rn "from.*{module_path}\|import.*{module_path}" . \
      --include="*.ts" --include="*.tsx" \
      2>/dev/null | grep -v node_modules | grep -v '\.test\.\|\.spec\.\|__tests__'
    ```
-4. If zero production imports, the tested code is dead.
+   d. Also check for re-exports (`export * from`, `export { ... } from`) that
+      may re-export the module through a barrel file.
+3. If zero production imports AND zero re-exports, the tested code is dead.
 5. **False positive check:** If `package.json` exports the module (check the
    `exports` or `main` fields), the code may be consumed by external packages
    outside this repo. Reduce confidence by -20 in this case.
